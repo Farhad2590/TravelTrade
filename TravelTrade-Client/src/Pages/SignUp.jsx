@@ -78,7 +78,7 @@ const SignUp = ({ userType }) => {
       await updateUserProfile(formData.name, "");
 
       const userData = {
-        email: formData.email,
+        email: formData.email.toLowerCase(),
         name: formData.name,
         mobile: formData.mobile,
         photo: result.user?.photoURL || "https://i.ibb.co/ScLz5b5/pic1.jpg",
