@@ -18,7 +18,7 @@ class PaymentModel {
 
   static async getPaymentsByTraveler(travelerEmail) {
     const collection = await this.getCollection();
-    return collection.find({ travelerEmail, status: 'completed' }).toArray();
+    return collection.find({ travelerEmail, status: 'received' }).toArray();
   }
 
   static async getAllPayments() {

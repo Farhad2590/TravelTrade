@@ -67,7 +67,7 @@ const Dashboard = () => {
     { name: "Transaction Monitor", path: "/dashboard/transactions", icon: <FaMoneyBillWave /> },
     { name: "Dispute Center", path: "/dashboard/disputes", icon: <FaHandshake /> },
     { name: "Platform Analytics", path: "/dashboard/analytics", icon: <FaChartLine /> },
-    { name: "Security Center", path: "/dashboard/security", icon: <FaShieldAlt /> },
+    { name: "Pending Post", path: "/dashboard/post-review", icon: <FaShieldAlt /> },
     { name: "Verification Requests", path: "/dashboard/verification-request", icon: <MdVerified /> },
     { name: "All Reviews", path: "/dashboard/all-reviews", icon: <FaStar /> },
   ];

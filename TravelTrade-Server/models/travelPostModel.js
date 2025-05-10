@@ -40,7 +40,7 @@ class TravelPostModel {
 
   static async getPendingPosts() {
     const collection = await this.getCollection();
-    return collection.find({ status: "pending" }).toArray();
+    return collection.find({ status: "post_approval_pending" }).toArray();
   }
 
   static async setPostStatus(postId, status) {

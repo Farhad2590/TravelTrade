@@ -511,23 +511,34 @@ const MyBids = () => {
                         >
                           <FaEye className="mr-2" /> View Details
                         </motion.button>
-                        <motion.button
+                        {/* <motion.button
                           className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200 flex items-center"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                         >
                           <FaEnvelope className="mr-2" /> Message
-                        </motion.button>
+                        </motion.button> */}
                         {/* // With this: */}
-                        {order.status === "payment_pending" && (
-                          <motion.button
-                            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200 flex items-center"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            <FaEnvelope className="mr-2" /> Message
-                          </motion.button>
-                        )}
+                        {order.status !== "rejected" &&
+                          [
+                            "accepted",
+                            "payment_pending",
+                            "paymentDone",
+                            "parcel_Pickup",
+                            "picked_Up",
+                            "inDeparture",
+                            "inArrival",
+                            "delivered",
+                            "received",
+                          ].includes(order.status) && (
+                            <motion.button
+                              className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200 flex items-center"
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <FaEnvelope className="mr-2" /> Message
+                            </motion.button>
+                          )}
                       </div>
                     </div>
                   </div>
@@ -586,28 +597,34 @@ const MyBids = () => {
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95, y: 10 }}
                                 transition={{ duration: 0.2 }}
-                                className="absolute right-0 top-full mt-2 bg-white shadow-xl rounded-lg p-3 z-20 min-w-max"
+                                className="absolute right-0 top-full mt-2 bg-white shadow-xl rounded-lg p-4 z-20 min-w-[200px]"
                               >
-                                <div className="flex flex-col space-y-2">
+                                <div className="flex flex-col space-y-3">
                                   {nextSteps.map((step, index) => (
                                     <motion.button
                                       key={index}
                                       onClick={step.action}
                                       disabled={step.loading}
-                                      className={`flex items-center px-4 py-2 rounded-lg transition duration-200 text-white ${step.color}`}
+                                      className={`flex items-center px-4 py-2.5 rounded-lg transition duration-200 text-white ${step.color} w-full`}
                                       whileHover={{ scale: 1.02 }}
                                       whileTap={{ scale: 0.98 }}
                                     >
                                       {step.loading ? (
                                         <div className="w-4 h-4 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin" />
                                       ) : (
-                                        step.icon
+                                        <>
+                                          <span className="text-base">
+                                            {step.icon}
+                                          </span>
+                                          <span className="ml-3 text-sm font-medium">
+                                            {step.label}
+                                          </span>
+                                        </>
                                       )}
-                                      <span className="ml-2">{step.label}</span>
                                     </motion.button>
                                   ))}
                                 </div>
-                                <div className="absolute bottom-full right-4 transform translate-y-1/2 rotate-45 w-3 h-3 bg-white"></div>
+                                <div className="absolute -top-1.5 right-4 w-3 h-3 bg-white transform rotate-45"></div>
                               </motion.div>
                             )}
                           </AnimatePresence>
@@ -617,8 +634,8 @@ const MyBids = () => {
 
                     {/* Status Timeline - Updated with alternating top/bottom status details */}
                     {order.status !== "rejected" && (
-                      <div className="hidden md:block relative mt-10 pb-10">
-                        <div className="flex items-center justify-between relative">
+                      <div className="hidden md:block relative mt-10 pt-20 pb-20">
+                        <div className="flex items-center justify-between relative pl-14 pr-16">
                           {/* Timeline connector */}
                           <div className="absolute h-1 bg-gray-200 left-0 right-0 top-0 -z-10"></div>
                           <div

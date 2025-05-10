@@ -37,15 +37,33 @@ const PostNewTrip = () => {
     { value: "international", label: "International" },
   ];
 
-  const parcelTypes = [
-    "Documents",
-    "Electronics",
-    "Clothing",
-    "Medicines",
-    "Food Items",
-    "Fragile Items",
-    "Others"
-  ];
+const parcelTypes = [
+  "Documents",
+  "Electronics",
+  "Clothing",
+  "Medicines",
+  "Food Items (Non-perishable)",
+  "Food Items (Perishable)",
+  "Fragile Items",
+  "Books",
+  "Cosmetics",
+  "Jewelry",
+  "Artwork",
+  "Musical Instruments",
+  "Sports Equipment",
+  "Tools",
+  "Automotive Parts",
+  "Baby Items",
+  "Pet Supplies",
+  "Home Decor",
+  "Office Supplies",
+  "Medical Equipment",
+  "Industrial Parts",
+  "Collectibles",
+  "Antiques",
+  "Plants",
+  "Others"
+];
 
   const handleChange = (e) => {
     const { name, value } = e.target;

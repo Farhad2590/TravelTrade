@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import useAuth from '../../../../hooks/useAuth';
-import LoadingSpinner from '../../../../Components/SharedComponets/LoadingSpinner';
-import toast from 'react-hot-toast';
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import useAuth from "../../../../hooks/useAuth";
+import LoadingSpinner from "../../../../Components/SharedComponets/LoadingSpinner";
+import toast from "react-hot-toast";
 
 const RequestPage = () => {
   const { id, type } = useParams();
@@ -11,16 +11,17 @@ const RequestPage = () => {
   const [post, setPost] = useState({});
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    parcel_type: '',
-    parcel_description: '',
-    parcel_weight_kg: '',
+    parcel_type: "",
+    parcel_description: "",
+    parcel_weight_kg: "",
     accepted_terms: false,
-    ...(type === 'bring' && { security_deposit: '' })
+    ...(type === "bring" && { security_deposit: "" }),
   });
   const [totalCost, setTotalCost] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  console.log(post);
 
   useEffect(() => {
     const fetchPostDetails = async () => {
@@ -33,37 +34,43 @@ const RequestPage = () => {
         setLoading(false);
       }
     };
-    
+
     fetchPostDetails();
   }, [id]);
   // console.log(post);
-  
 
   // Calculate total cost whenever parcel weight or security deposit changes
   useEffect(() => {
     if (post?.costPerKg && formData.parcel_weight_kg) {
-      const weightCost = parseFloat(formData.parcel_weight_kg) * parseFloat(post.costPerKg);
-      const securityDeposit = type === 'bring' && formData.security_deposit 
-        ? parseFloat(formData.security_deposit) 
-        : 0;
+      const weightCost =
+        parseFloat(formData.parcel_weight_kg) * parseFloat(post.costPerKg);
+      const securityDeposit =
+        type === "bring" && formData.security_deposit
+          ? parseFloat(formData.security_deposit)
+          : 0;
       setTotalCost(weightCost + securityDeposit);
     } else {
       setTotalCost(0);
     }
-  }, [formData.parcel_weight_kg, formData.security_deposit, post.costPerKg, type]);
+  }, [
+    formData.parcel_weight_kg,
+    formData.security_deposit,
+    post.costPerKg,
+    type,
+  ]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     const finalData = {
       ...formData,
       request_type: type,
@@ -96,9 +103,9 @@ const RequestPage = () => {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-blue-50 py-10 px-4">
       <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
         <h1 className="text-3xl font-bold text-center mb-6 text-[#009ee2]">
-          {type === 'send' ? 'Send Parcel Request' : 'Bring Parcel Request'}
+          {type === "send" ? "Send Parcel Request" : "Bring Parcel Request"}
         </h1>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div>
@@ -113,10 +120,11 @@ const RequestPage = () => {
                 required
               >
                 <option value="">Select Parcel Type</option>
-                <option value="Document">Document</option>
-                <option value="Medicines">Medicines</option>
-                <option value="Clothing">Clothing</option>
-                <option value="Electronics">Electronics</option>
+                {post.parcelTypes?.split(",").map((type, index) => (
+                  <option key={index} value={type.trim()}>
+                    {type.trim()}
+                  </option>
+                ))}
                 <option value="Other">Other</option>
               </select>
             </div>
@@ -145,23 +153,36 @@ const RequestPage = () => {
                 name="parcel_weight_kg"
                 step="0.1"
                 min="0.1"
+                max={post.maxWeight}
                 value={formData.parcel_weight_kg}
                 onChange={handleChange}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                placeholder="Enter weight in kilograms"
+                placeholder={`Enter weight in kilograms (max ${post.maxWeight}kg)`}
                 required
               />
               {formData.parcel_weight_kg && post?.costPerKg && (
                 <p className="text-sm text-gray-600 mt-1">
-                  Shipping Cost: {formData.parcel_weight_kg} kg × {post.costPerKg} Taka/kg = {parseFloat(formData.parcel_weight_kg) * parseFloat(post.costPerKg)} Taka
+                  Shipping Cost: {formData.parcel_weight_kg} kg ×{" "}
+                  {post.costPerKg} Taka/kg ={" "}
+                  {parseFloat(formData.parcel_weight_kg) *
+                    parseFloat(post.costPerKg)}{" "}
+                  Taka
                 </p>
               )}
+              {formData.parcel_weight_kg &&
+                parseFloat(formData.parcel_weight_kg) >
+                  parseFloat(post.maxWeight) && (
+                  <p className="text-sm text-red-600 mt-1">
+                    Traveller Can allow weight is {post.maxWeight} kg
+                  </p>
+                )}
             </div>
 
-            {type === 'bring' && (
+            {type === "bring" && (
               <div>
                 <label className="block mb-2 font-medium text-gray-700">
-                  Security Deposit (Taka) <span className="text-red-500">*</span>
+                  Security Deposit (Taka){" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -174,20 +195,27 @@ const RequestPage = () => {
                   required
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  This amount will be used if the traveler needs to purchase items for you.
+                  This amount will be used if the traveler needs to purchase
+                  items for you.
                 </p>
               </div>
             )}
 
             {totalCost > 0 && (
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <h3 className="font-bold text-lg text-blue-800">Total Cost Summary</h3>
+                <h3 className="font-bold text-lg text-blue-800">
+                  Total Cost Summary
+                </h3>
                 <div className="mt-2 space-y-1">
                   <p className="flex justify-between">
                     <span>Shipping Cost:</span>
-                    <span>{parseFloat(formData.parcel_weight_kg) * parseFloat(post.costPerKg)} Taka</span>
+                    <span>
+                      {parseFloat(formData.parcel_weight_kg) *
+                        parseFloat(post.costPerKg)}{" "}
+                      Taka
+                    </span>
                   </p>
-                  {type === 'bring' && formData.security_deposit && (
+                  {type === "bring" && formData.security_deposit && (
                     <p className="flex justify-between">
                       <span>Security Deposit:</span>
                       <span>{formData.security_deposit} Taka</span>
@@ -213,7 +241,10 @@ const RequestPage = () => {
                   required
                 />
               </div>
-              <label htmlFor="terms" className="ml-3 text-sm font-medium text-gray-700">
+              <label
+                htmlFor="terms"
+                className="ml-3 text-sm font-medium text-gray-700"
+              >
                 I have read and accept all details of the travel schedule
               </label>
             </div>
@@ -235,13 +266,31 @@ const RequestPage = () => {
             >
               {isSubmitting ? (
                 <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Submitting...
                 </>
-              ) : "Submit Request"}
+              ) : (
+                "Submit Request"
+              )}
             </button>
           </div>
         </form>

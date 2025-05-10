@@ -17,7 +17,7 @@ import {
   FaTruck,
   FaStar,
   FaArrowRight,
-  FaArrowCircleRight
+  FaArrowCircleRight,
 } from "react-icons/fa";
 import ParcelInstructionsModal from "./components/ParcelInstructionsModal";
 import BidDetailsModal from "./components/BidDetailsModal";
@@ -70,20 +70,20 @@ const RequestedBids = () => {
       await axios.patch(`${api}/bids/${bidId}/updateStatus`, { status });
       fetchRequests();
       setShowStatusUpdate(null);
-      
+
       // Show styled toast based on status
       const statusLabel = status.replace(/_/g, " ");
       const toastStyle = {
         style: {
           background: getStatusColor(status),
-          color: '#fff',
-          padding: '16px',
-          borderRadius: '8px',
+          color: "#fff",
+          padding: "16px",
+          borderRadius: "8px",
         },
         duration: 3000,
         icon: getStatusIcon(status),
       };
-      
+
       toast.success(`Status updated to ${statusLabel}`, toastStyle);
     } catch (error) {
       console.error("Error updating status:", error);
@@ -95,49 +95,82 @@ const RequestedBids = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "travellerPending": return "#EAB308"; // yellow
-      case "rejected": return "#EF4444"; // red
-      case "payment_pending": return "#F97316"; // orange
-      case "paymentDone": return "#3B82F6"; // blue
-      case "parcel_Pickup": return "#A855F7"; // purple
-      case "picked_Up": return "#6366F1"; // indigo
-      case "inDeparture": return "#14B8A6"; // teal
-      case "inArrival": return "#06B6D4"; // cyan
-      case "delivered": return "#10B981"; // emerald
-      case "received": return "#84CC16"; // lime
-      default: return "#6B7280"; // gray
+      case "travellerPending":
+        return "#EAB308"; // yellow
+      case "rejected":
+        return "#EF4444"; // red
+      case "payment_pending":
+        return "#F97316"; // orange
+      case "paymentDone":
+        return "#3B82F6"; // blue
+      case "parcel_Pickup":
+        return "#A855F7"; // purple
+      case "picked_Up":
+        return "#6366F1"; // indigo
+      case "inDeparture":
+        return "#14B8A6"; // teal
+      case "inArrival":
+        return "#06B6D4"; // cyan
+      case "delivered":
+        return "#10B981"; // emerald
+      case "received":
+        return "#84CC16"; // lime
+      default:
+        return "#6B7280"; // gray
     }
   };
 
   const getStatusClass = (status) => {
     switch (status) {
-      case "travellerPending": return "bg-yellow-100 text-yellow-800";
-      case "rejected": return "bg-red-100 text-red-800";
-      case "payment_pending": return "bg-orange-100 text-orange-800";
-      case "paymentDone": return "bg-blue-100 text-blue-800";
-      case "parcel_Pickup": return "bg-purple-100 text-purple-800";
-      case "picked_Up": return "bg-indigo-100 text-indigo-800";
-      case "inDeparture": return "bg-teal-100 text-teal-800";
-      case "inArrival": return "bg-cyan-100 text-cyan-800";
-      case "delivered": return "bg-emerald-100 text-emerald-800";
-      case "received": return "bg-lime-100 text-lime-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "travellerPending":
+        return "bg-yellow-100 text-yellow-800";
+      case "rejected":
+        return "bg-red-100 text-red-800";
+      case "payment_pending":
+        return "bg-orange-100 text-orange-800";
+      case "paymentDone":
+        return "bg-blue-100 text-blue-800";
+      case "parcel_Pickup":
+        return "bg-purple-100 text-purple-800";
+      case "picked_Up":
+        return "bg-indigo-100 text-indigo-800";
+      case "inDeparture":
+        return "bg-teal-100 text-teal-800";
+      case "inArrival":
+        return "bg-cyan-100 text-cyan-800";
+      case "delivered":
+        return "bg-emerald-100 text-emerald-800";
+      case "received":
+        return "bg-lime-100 text-lime-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case "travellerPending": return <FaHourglassHalf className="mr-2" />;
-      case "rejected": return <FaTimes className="mr-2" />;
-      case "payment_pending": return <FaHourglassHalf className="mr-2" />;
-      case "paymentDone": return <FaMoneyBillWave className="mr-2" />;
-      case "parcel_Pickup": return <FaBoxOpen className="mr-2" />;
-      case "picked_Up": return <FaTruckLoading className="mr-2" />;
-      case "inDeparture": return <FaPlaneDeparture className="mr-2" />;
-      case "inArrival": return <FaPlaneArrival className="mr-2" />;
-      case "delivered": return <FaBox className="mr-2" />;
-      case "received": return <FaCheck className="mr-2" />;
-      default: return <FaHourglassHalf className="mr-2" />;
+      case "travellerPending":
+        return <FaHourglassHalf className="mr-2" />;
+      case "rejected":
+        return <FaTimes className="mr-2" />;
+      case "payment_pending":
+        return <FaHourglassHalf className="mr-2" />;
+      case "paymentDone":
+        return <FaMoneyBillWave className="mr-2" />;
+      case "parcel_Pickup":
+        return <FaBoxOpen className="mr-2" />;
+      case "picked_Up":
+        return <FaTruckLoading className="mr-2" />;
+      case "inDeparture":
+        return <FaPlaneDeparture className="mr-2" />;
+      case "inArrival":
+        return <FaPlaneArrival className="mr-2" />;
+      case "delivered":
+        return <FaBox className="mr-2" />;
+      case "received":
+        return <FaCheck className="mr-2" />;
+      default:
+        return <FaHourglassHalf className="mr-2" />;
     }
   };
 
@@ -145,19 +178,64 @@ const RequestedBids = () => {
     switch (currentStatus) {
       case "travellerPending":
         return [
-          { status: "payment_pending", label: "Accept", color: "green", icon: <FaCheck /> },
-          { status: "rejected", label: "Reject", color: "red", icon: <FaTimes /> },
+          {
+            status: "payment_pending",
+            label: "Accept",
+            color: "green",
+            icon: <FaCheck />,
+          },
+          {
+            status: "rejected",
+            label: "Reject",
+            color: "red",
+            icon: <FaTimes />,
+          },
         ];
       case "paymentDone":
-        return [{ status: "parcel_Pickup", label: "Parcel Pickup", color: "purple", icon: <FaBoxOpen /> }];
+        return [
+          {
+            status: "parcel_Pickup",
+            label: "Parcel Pickup",
+            color: "purple",
+            icon: <FaBoxOpen />,
+          },
+        ];
       case "parcel_Pickup":
-        return [{ status: "picked_Up", label: "Picked Up", color: "indigo", icon: <FaTruckLoading /> }];
+        return [
+          {
+            status: "picked_Up",
+            label: "Picked Up",
+            color: "indigo",
+            icon: <FaTruckLoading />,
+          },
+        ];
       case "picked_Up":
-        return [{ status: "inDeparture", label: "In Departure", color: "teal", icon: <FaPlaneDeparture /> }];
+        return [
+          {
+            status: "inDeparture",
+            label: "In Departure",
+            color: "teal",
+            icon: <FaPlaneDeparture />,
+          },
+        ];
       case "inDeparture":
-        return [{ status: "inArrival", label: "In Arrival", color: "cyan", icon: <FaPlaneArrival /> }];
+        return [
+          {
+            status: "inArrival",
+            label: "In Arrival",
+            color: "cyan",
+            icon: <FaPlaneArrival />,
+          },
+        ];
       case "inArrival":
-        return [{ status: "delivered", label: "Delivered", color: "emerald", icon: <FaBox /> }];
+        return [
+          {
+            status: "delivered",
+            label: "Delivered",
+            color: "emerald",
+            icon: <FaBox />,
+          },
+        ];
       default:
         return [];
     }
@@ -204,25 +282,25 @@ const RequestedBids = () => {
 
   const getStatusTransitionSteps = (status) => {
     const allStatuses = [
-      "travellerPending", 
-      "payment_pending", 
-      "paymentDone", 
-      "parcel_Pickup", 
-      "picked_Up", 
-      "inDeparture", 
-      "inArrival", 
-      "delivered", 
-      "received"
+      "travellerPending",
+      "payment_pending",
+      "paymentDone",
+      "parcel_Pickup",
+      "picked_Up",
+      "inDeparture",
+      "inArrival",
+      "delivered",
+      "received",
     ];
-    
+
     // Filter out "rejected" as it's a terminal state from any point
     if (status === "rejected") {
       return ["rejected"];
     }
-    
+
     const currentIndex = allStatuses.indexOf(status);
     if (currentIndex === -1) return [status];
-    
+
     return allStatuses.slice(0, currentIndex + 1);
   };
 
@@ -251,7 +329,7 @@ const RequestedBids = () => {
             {requests.map((request) => {
               const nextActions = getNextStatusAction(request.status);
               const statusSteps = getStatusTransitionSteps(request.status);
-              
+
               return (
                 <motion.div
                   key={request._id}
@@ -267,13 +345,17 @@ const RequestedBids = () => {
                           {request.parcel_name || request.parcel_type}
                         </h2>
                         <p className="text-gray-500 mt-1">
-                          Weight: {request.parcel_weight_kg} kg • Price: ${request.price_offer || request.totalCost}
+                          Weight: {request.parcel_weight_kg} kg • Price: $
+                          {request.price_offer || request.totalCost}
                         </p>
                         <p className="text-gray-500">
-                          Travel Date: {formatDate(request.travelDate || request.delivery_deadline)}
+                          Travel Date:{" "}
+                          {formatDate(
+                            request.travelDate || request.delivery_deadline
+                          )}
                         </p>
                       </div>
-                      
+
                       <div className="flex items-center space-x-3">
                         <motion.button
                           onClick={() => setSelectedBid(request)}
@@ -297,23 +379,29 @@ const RequestedBids = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Status Section */}
                   <div className="p-4 bg-gray-50">
                     <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
                       <div>
-                        <h3 className="text-md font-medium text-gray-700 mb-1">Current Status</h3>
+                        <h3 className="text-md font-medium text-gray-700 mb-1">
+                          Current Status
+                        </h3>
                         <div className="flex items-center">
-                          <div 
+                          <div
                             className="w-3 h-3 rounded-full mr-2"
-                            style={{ backgroundColor: getStatusColor(request.status) }}
+                            style={{
+                              backgroundColor: getStatusColor(request.status),
+                            }}
                           ></div>
                           <span
                             className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusClass(
                               request.status
                             )}`}
-                            style={{ 
-                              borderLeft: `4px solid ${getStatusColor(request.status)}` 
+                            style={{
+                              borderLeft: `4px solid ${getStatusColor(
+                                request.status
+                              )}`,
                             }}
                           >
                             {request.status.replace(/_/g, " ")}
@@ -323,18 +411,25 @@ const RequestedBids = () => {
                           {getStatusDescription(request.status)}
                         </p>
                       </div>
-                      
+
                       {nextActions.length > 0 && (
                         <div className="mt-4 md:mt-0 relative">
                           <motion.button
-                            onClick={() => setShowStatusUpdate(showStatusUpdate === request._id ? null : request._id)}
+                            onClick={() =>
+                              setShowStatusUpdate(
+                                showStatusUpdate === request._id
+                                  ? null
+                                  : request._id
+                              )
+                            }
                             className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
-                            Update Status <FaArrowCircleRight className="ml-2" />
+                            Update Status{" "}
+                            <FaArrowCircleRight className="ml-2" />
                           </motion.button>
-                          
+
                           <AnimatePresence>
                             {showStatusUpdate === request._id && (
                               <motion.div
@@ -349,9 +444,15 @@ const RequestedBids = () => {
                                     <motion.button
                                       key={action.status}
                                       disabled={updatingStatus}
-                                      onClick={() => updateStatus(request._id, action.status)}
+                                      onClick={() =>
+                                        updateStatus(request._id, action.status)
+                                      }
                                       className={`flex items-center px-4 py-2 rounded-lg transition duration-200 text-white`}
-                                      style={{ backgroundColor: getStatusColor(action.status) }}
+                                      style={{
+                                        backgroundColor: getStatusColor(
+                                          action.status
+                                        ),
+                                      }}
                                       whileHover={{ scale: 1.02 }}
                                       whileTap={{ scale: 0.98 }}
                                     >
@@ -360,7 +461,9 @@ const RequestedBids = () => {
                                       ) : (
                                         action.icon
                                       )}
-                                      <span className="ml-2">{action.label}</span>
+                                      <span className="ml-2">
+                                        {action.label}
+                                      </span>
                                     </motion.button>
                                   ))}
                                 </div>
@@ -371,43 +474,65 @@ const RequestedBids = () => {
                         </div>
                       )}
                     </div>
-                    
+
                     {/* Status Timeline with alternating descriptions */}
                     {request.status !== "rejected" && (
-                      <div className="hidden md:block relative mt-6 pb-4">
-                        <div className="flex items-center justify-between relative">
+                      <div className="hidden md:block relative mt-10 pt-20 pb-20">
+                        <div className="flex items-center justify-between relative pl-14 pr-16">
                           {statusSteps.map((step, index) => {
-                            const isActive = index <= statusSteps.indexOf(request.status);
+                            const isActive =
+                              index <= statusSteps.indexOf(request.status);
                             const isCurrentStep = step === request.status;
                             const isEvenIndex = index % 2 === 0;
-                            
+
                             return (
-                              <div key={step} className="flex flex-col items-center relative z-10">
+                              <div
+                                key={step}
+                                className="flex flex-col items-center relative z-10"
+                              >
                                 {/* Description above for even indexed steps */}
                                 {isEvenIndex && (
-                                  <div className={`absolute bottom-full mb-2 w-32 text-center ${isActive ? "text-gray-800" : "text-gray-400"}`}>
+                                  <div
+                                    className={`absolute bottom-full mb-2 w-32 text-center ${
+                                      isActive
+                                        ? "text-gray-800"
+                                        : "text-gray-400"
+                                    }`}
+                                  >
                                     <span className="text-xs">
                                       {step.replace(/_/g, " ")}
                                     </span>
                                   </div>
                                 )}
-                                
-                                <div 
+
+                                <div
                                   className={`w-8 h-8 rounded-full flex items-center justify-center z-10 ${
-                                    isActive ? "text-white" : "bg-gray-200 text-gray-500"
+                                    isActive
+                                      ? "text-white"
+                                      : "bg-gray-200 text-gray-500"
                                   }`}
-                                  style={{ 
-                                    backgroundColor: isActive ? getStatusColor(step) : "",
-                                    transform: isCurrentStep ? "scale(1.2)" : "",
-                                    transition: "all 0.3s ease"
+                                  style={{
+                                    backgroundColor: isActive
+                                      ? getStatusColor(step)
+                                      : "",
+                                    transform: isCurrentStep
+                                      ? "scale(1.2)"
+                                      : "",
+                                    transition: "all 0.3s ease",
                                   }}
                                 >
                                   {getStatusIcon(step)}
                                 </div>
-                                
+
                                 {/* Description below for odd indexed steps */}
                                 {!isEvenIndex && (
-                                  <div className={`absolute top-full mt-2 w-32 text-center ${isActive ? "text-gray-800" : "text-gray-400"}`}>
+                                  <div
+                                    className={`absolute top-full mt-2 w-32 text-center ${
+                                      isActive
+                                        ? "text-gray-800"
+                                        : "text-gray-400"
+                                    }`}
+                                  >
                                     <span className="text-xs">
                                       {step.replace(/_/g, " ")}
                                     </span>
@@ -416,20 +541,24 @@ const RequestedBids = () => {
                               </div>
                             );
                           })}
-                          
+
                           {/* Timeline connector */}
                           <div className="absolute h-1 bg-gray-200 left-0 right-0 top-4 -z-10"></div>
-                          <div 
+                          <div
                             className="absolute h-1 top-4 left-0 -z-10 transition-all duration-500"
-                            style={{ 
+                            style={{
                               backgroundColor: getStatusColor(request.status),
-                              width: `${(statusSteps.indexOf(request.status) / (statusSteps.length - 1)) * 100}%`
+                              width: `${
+                                (statusSteps.indexOf(request.status) /
+                                  (statusSteps.length - 1)) *
+                                100
+                              }%`,
                             }}
                           ></div>
                         </div>
                       </div>
                     )}
-                    
+
                     {request.status === "rejected" && (
                       <div className="bg-red-50 border-l-4 border-red-500 p-4 mt-4 rounded">
                         <div className="flex">
@@ -438,14 +567,15 @@ const RequestedBids = () => {
                           </div>
                           <div className="ml-3">
                             <p className="text-sm text-red-700">
-                              This bid has been rejected. Please check other opportunities.
+                              This bid has been rejected. Please check other
+                              opportunities.
                             </p>
                           </div>
                         </div>
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Action Section */}
                   <div className="px-6 py-4 flex justify-end">
                     {/* Action buttons moved to status section for better alignment */}
