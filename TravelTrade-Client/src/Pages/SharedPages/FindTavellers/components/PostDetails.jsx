@@ -15,7 +15,7 @@ const PostDetails = () => {
   const [showInitialModal, setShowInitialModal] = useState(false);
   const [loading, setLoading] = useState(true);
   
-  const { user } = useAuth();
+  // const { user } = useAuth();
 
   useEffect(() => {
     fetchPostDetails();

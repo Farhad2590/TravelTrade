@@ -1,5 +1,5 @@
-
 import VerificationBadge from '../PostComponents/VerificationBadge';
+import ReviewsSection from '../PostComponents/ReviewsSection';
 
 const TravelerCard = ({ traveler, onRequestClick }) => {
   return (
@@ -43,6 +43,9 @@ const TravelerCard = ({ traveler, onRequestClick }) => {
         </div>
         
         <VerificationBadge traveler={traveler} />
+        
+        {/* Reviews Section */}
+        <ReviewsSection reviews={traveler.reviews} />
       </div>
       
       <div className="p-6 mt-auto">

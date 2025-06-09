@@ -79,6 +79,7 @@ const userController = {
       res.status(500).send({ error: error.message });
     }
   },
+
   checkSenderStatus: async (req, res) => {
     try {
       const email = req.params.email;
@@ -177,6 +178,70 @@ const userController = {
       }
     } catch (error) {
       res.status(500).send({ error: error.message });
+    }
+  },
+
+  // New controller methods for reviews
+  getReviewsReceived: async (req, res) => {
+    try {
+      const email = req.params.email;
+      const reviews = await UserModel.getReviewsReceived(email);
+      
+      if (reviews.length === 0) {
+        return res.status(200).json({ 
+          message: "No reviews found for this user", 
+          reviews: [] 
+        });
+      }
+      
+      res.status(200).json({ 
+        message: "Reviews fetched successfully", 
+        reviews 
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch reviews received" });
+    }
+  },
+
+  getReviewsGiven: async (req, res) => {
+    try {
+      const email = req.params.email;
+      const reviewsGiven = await UserModel.getReviewsGiven(email);
+      
+      if (reviewsGiven.length === 0) {
+        return res.status(200).json({ 
+          message: "No reviews given by this user", 
+          reviews: [] 
+        });
+      }
+      
+      res.status(200).json({ 
+        message: "Reviews given fetched successfully", 
+        reviews: reviewsGiven 
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch reviews given" });
+    }
+  },
+
+  getAllReviewsGivenBySenders: async (req, res) => {
+    try {
+      const allReviewsBySenders = await UserModel.getAllReviewsGivenBySenders();
+      
+      if (allReviewsBySenders.length === 0) {
+        return res.status(200).json({ 
+          message: "No reviews given by senders found", 
+          reviews: [] 
+        });
+      }
+      
+      res.status(200).json({ 
+        message: "All reviews by senders fetched successfully", 
+        reviews: allReviewsBySenders,
+        total: allReviewsBySenders.length 
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch reviews given by senders" });
     }
   },
 };

@@ -28,6 +28,11 @@ import AdminRoute from "./AdminRoute";
 import TravelerRoute from "./TravelerRoute";
 import SenderRoute from "./SenderRoute";
 import Messaging from "../Pages/SharedPages/Messaging/MEssaging";
+import PaymentResult from "../Pages/SenderPages/MyBids/components/PaymentResult";
+import GivenReviews from "../Pages/SenderPages/GivenReviews/GivenReviews";
+import MyReviews from "../Pages/TravellerPages/MyReviews/MyReviews";
+import AllReviews from "../Pages/AdminPages/AllReviews/AllReviews";
+import PlatformAnalytics from "../Pages/AdminPages/PlatfromAnalytics/PlatfromAnalytics";
 
 export const router = createBrowserRouter([
   {
@@ -62,7 +67,10 @@ export const router = createBrowserRouter([
         path: "/unauthorized",
         element: <Unauthorized />,
       },
-      
+      {
+        path: "/payment-result",
+        element: <PaymentResult />,
+      },
     ],
   },
   {
@@ -81,7 +89,27 @@ export const router = createBrowserRouter([
       //Admin
       {
         path: "/dashboard/manage-users",
-        element: <AdminRoute><UserManagement /></AdminRoute>,
+        element: (
+          <AdminRoute>
+            <UserManagement />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/dashboard/all-reviews",
+        element: (
+          <AdminRoute>
+            <AllReviews />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/dashboard/analytics",
+        element: (
+          <AdminRoute>
+            <PlatformAnalytics />
+          </AdminRoute>
+        ),
       },
       {
         path: "/dashboard/post-review",
@@ -103,7 +131,15 @@ export const router = createBrowserRouter([
       //traveller
       {
         path: "/dashboard/post-trip",
-        element: <TravelerRoute><PostNewTrip /></TravelerRoute>,
+        element: (
+          <TravelerRoute>
+            <PostNewTrip />
+          </TravelerRoute>
+        ),
+      },
+      {
+        path: "/dashboard/received-reviews",
+        element: <MyReviews />,
       },
       {
         path: "/dashboard/my-trips",
@@ -120,8 +156,21 @@ export const router = createBrowserRouter([
       //Sender
       {
         path: "/dashboard/my-bids",
-        element: <SenderRoute><MyBids /></SenderRoute>,
+        element: (
+          <SenderRoute>
+            <MyBids />
+          </SenderRoute>
+        ),
       },
+      {
+        path: "/dashboard/my-reviews",
+        element: (
+          <SenderRoute>
+            <GivenReviews />
+          </SenderRoute>
+        ),
+      },
+
       {
         path: "/dashboard/find-travelers",
         element: <FindTravelers />,

@@ -32,6 +32,7 @@ class BidModel {
       { $set: { status } }
     );
   }
+  
 
   static async getUserBids(email) {
     const collection = await this.getCollection();

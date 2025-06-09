@@ -9,6 +9,7 @@ const RequestPage = () => {
   const { id, type } = useParams();
   const api = "http://localhost:9000";
   const [post, setPost] = useState({});
+   const [userData, setUserData] = useState({});
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     parcel_type: "",
@@ -21,7 +22,7 @@ const RequestPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
-  console.log(post);
+  console.log(userData);
 
   useEffect(() => {
     const fetchPostDetails = async () => {
@@ -36,6 +37,21 @@ const RequestPage = () => {
     };
 
     fetchPostDetails();
+  }, [id]);
+
+    useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await axios.get(`${api}/users/${user?.email}`); 
+        setUserData(response.data);
+      } catch (error) {
+        console.error("Error fetching post details:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
   }, [id]);
   // console.log(post);
 
@@ -83,6 +99,7 @@ const RequestPage = () => {
       departureCity: post.departureCity,
       arrivalCity: post.arrivalCity,
       travelDate: post.departureDateTime?.slice(0, 10),
+      travelerId: userData.firebaseId
     };
 
     try {

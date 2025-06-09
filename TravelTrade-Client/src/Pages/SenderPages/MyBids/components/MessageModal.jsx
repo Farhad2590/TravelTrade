@@ -22,6 +22,8 @@ const MessageModal = ({ order, onClose, currentUser }) => {
   const navigate = useNavigate();
   const { changeChat } = useChatStore();
   const { currentUser: firebaseUser } = useUserStore();
+  console.log(order);
+  
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -124,27 +126,31 @@ const MessageModal = ({ order, onClose, currentUser }) => {
         }
       }
 
-      // Add the message to the chat
+      // Add the message to the chat - FIXED: Use Date.now() instead of serverTimestamp()
       await updateDoc(doc(db, "chats", chatId), {
         messages: arrayUnion({
           senderId: firebaseUser.id,
           text: message,
-          createdAt: serverTimestamp(),
+          createdAt: Date.now(), // Changed from serverTimestamp() to Date.now()
         }),
       });
 
       // Update last message in userchats
+      const userChatsData = userChatsSnap.exists() ? userChatsSnap.data().chats : [];
       await updateDoc(doc(db, "userchats", firebaseUser.id), {
-        chats: (userChatsSnap.exists() ? userChatsSnap.data().chats : []).map(
-          (chat) => 
-            chat.chatId === chatId ? { ...chat, lastMessage: message, updatedAt: Date.now() } : chat
+        chats: userChatsData.map((chat) => 
+          chat.chatId === chatId ? { ...chat, lastMessage: message, updatedAt: Date.now() } : chat
         ),
       });
 
-      await updateDoc(doc(db, "userchats", travelerId), {
-        chats: (travelerChatsSnap.exists() ? travelerChatsSnap.data().chats : []).map(
-          (chat) => 
-            chat.chatId === chatId ? { ...chat, lastMessage: message, updatedAt: Date.now() } : chat
+      // Get fresh traveler chats data
+      const travelerChatsRef = doc(db, "userchats", travelerId);
+      const travelerChatsSnap = await getDoc(travelerChatsRef);
+      const travelerChatsData = travelerChatsSnap.exists() ? travelerChatsSnap.data().chats : [];
+      
+      await updateDoc(travelerChatsRef, {
+        chats: travelerChatsData.map((chat) => 
+          chat.chatId === chatId ? { ...chat, lastMessage: message, updatedAt: Date.now() } : chat
         ),
       });
 

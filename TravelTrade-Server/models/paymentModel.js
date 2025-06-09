@@ -1,9 +1,9 @@
-const { connectToDatabase, getObjectId } = require('../config/db');
+const { connectToDatabase, getObjectId } = require("../config/db");
 
 class PaymentModel {
   static async getCollection() {
     const db = await connectToDatabase();
-    return db.collection('tradeTravelPayments');
+    return db.collection("tradeTravelPayments");
   }
 
   static async createPayment(paymentData) {
@@ -15,10 +15,25 @@ class PaymentModel {
     const collection = await this.getCollection();
     return collection.find({ senderEmail }).toArray();
   }
+  // Add this method to your existing PaymentModel class
+  static async updatePaymentStatus(transactionId, status, valId = null) {
+    const collection = await this.getCollection();
+    const updateData = { status };
+
+    if (valId) {
+      updateData.valId = valId;
+      updateData.paidAt = new Date();
+    }
+
+    return collection.updateOne(
+      { paymentIntentId: transactionId },
+      { $set: updateData }
+    );
+  }
 
   static async getPaymentsByTraveler(travelerEmail) {
     const collection = await this.getCollection();
-    return collection.find({ travelerEmail, status: 'received' }).toArray();
+    return collection.find({ travelerEmail, status: "completed" }).toArray();
   }
 
   static async getAllPayments() {

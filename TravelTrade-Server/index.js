@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const bodyParser = require('body-parser');
 
 const userRoutes = require("./routes/userRoutes");
 const travelPostRoutes = require("./routes/travelPostRoutes");
@@ -21,6 +22,8 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 // Connect to database
 connectToDatabase().catch(console.error);

@@ -20,7 +20,7 @@ const PaymentHistory = () => {
   const fetchPaymentHistory = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${api}/payments/history/${user.email}`);
+      const response = await axios.get(`${api}/history/${user.email}`);
       setPayments(response.data);
       setLoading(false);
     } catch (err) {

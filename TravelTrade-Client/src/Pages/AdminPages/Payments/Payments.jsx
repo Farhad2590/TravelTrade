@@ -18,7 +18,7 @@ const Payments = () => {
   useEffect(() => {
     const fetchPayments = async () => {
       try {
-        const response = await axios.get('http://localhost:9000/payments/admin');
+        const response = await axios.get('http://localhost:9000/all');
         console.log(response);
         
         setPayments(response.data);

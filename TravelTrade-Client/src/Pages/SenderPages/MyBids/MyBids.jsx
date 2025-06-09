@@ -57,6 +57,24 @@ const MyBids = () => {
   );
 
   useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const paymentStatus = queryParams.get("payment");
+    const orderId = queryParams.get("orderId");
+
+    if (
+      paymentStatus &&
+      ["success", "failed", "cancelled"].includes(paymentStatus)
+    ) {
+      // Let PaymentResult.jsx handle the display
+      return;
+    }
+
+    if (user?.email) {
+      fetchAllOrders();
+    }
+  }, [user]);
+
+  useEffect(() => {
     if (user?.email) {
       fetchAllOrders();
     }

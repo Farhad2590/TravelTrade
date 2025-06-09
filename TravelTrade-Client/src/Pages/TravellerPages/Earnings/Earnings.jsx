@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import useAuth from "../../../hooks/useAuth";
-import { FaCheck, FaTimes, FaHourglassHalf, FaMoneyBillWave, FaFileInvoiceDollar } from "react-icons/fa";
+import {
+  FaCheck,
+  FaTimes,
+  FaHourglassHalf,
+  FaMoneyBillWave,
+  FaFileInvoiceDollar,
+} from "react-icons/fa";
 
 const Earnings = () => {
   const { user } = useAuth();
@@ -30,7 +36,7 @@ const Earnings = () => {
     setLoading(true);
     try {
       const [earningsRes, withdrawalsRes] = await Promise.all([
-        axios.get(`${api}/payments/earnings/${user.email}`),
+        axios.get(`${api}/earnings/${user.email}`),
         axios.get(`${api}/withdrawals/${user.email}`),
       ]);
 
@@ -103,29 +109,32 @@ const Earnings = () => {
   const validateForm = () => {
     const errors = {};
     if (!formData.bankName.trim()) errors.bankName = "Bank name is required";
-    if (!formData.accountNumber.trim()) errors.accountNumber = "Account number is required";
-    if (!formData.routingNumber.trim()) errors.routingNumber = "Routing number is required";
-    if (!formData.accountHolderName.trim()) errors.accountHolderName = "Account holder name is required";
-    
+    if (!formData.accountNumber.trim())
+      errors.accountNumber = "Account number is required";
+    if (!formData.routingNumber.trim())
+      errors.routingNumber = "Routing number is required";
+    if (!formData.accountHolderName.trim())
+      errors.accountHolderName = "Account holder name is required";
+
     return errors;
   };
 
   const handleWithdrawSubmit = async (e) => {
     e.preventDefault();
-    
+
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       return;
     }
-    
+
     try {
       await axios.post(`${api}/withdrawals`, {
         travelerEmail: user.email,
         amount: earnings.totalEarnings,
         bankDetails: formData,
       });
-      
+
       // Show success message
       alert("Withdrawal request submitted successfully!");
       setShowWithdrawModal(false);
@@ -135,7 +144,7 @@ const Earnings = () => {
         routingNumber: "",
         accountHolderName: "",
       });
-      
+
       // Refresh data
       fetchData();
     } catch (err) {
@@ -171,7 +180,10 @@ const Earnings = () => {
               <div className="flex items-center">
                 <FaMoneyBillWave className="text-[#009ee2] text-3xl mr-3" />
                 <h2 className="text-2xl font-semibold">
-                  Total Earnings: <span className="text-[#009ee2]">${earnings.totalEarnings.toFixed(2)}</span>
+                  Total Earnings:{" "}
+                  <span className="text-[#009ee2]">
+                    ${earnings.totalEarnings.toFixed(2)}
+                  </span>
                 </h2>
               </div>
               <motion.button
@@ -190,7 +202,9 @@ const Earnings = () => {
             </div>
 
             <div className="mb-8">
-              <h3 className="text-xl font-semibold mb-4 text-gray-700">Payment History</h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-700">
+                Payment History
+              </h3>
               {earnings.payments.length === 0 ? (
                 <div className="bg-gray-50 p-4 rounded-lg text-center">
                   <p className="text-gray-600">No payment history found.</p>
@@ -214,8 +228,12 @@ const Earnings = () => {
                           }`}
                         >
                           <td className="py-4 px-6">{payment.orderId}</td>
-                          <td className="py-4 px-6">${parseFloat(payment.amount).toFixed(2)}</td>
-                          <td className="py-4 px-6">{formatDate(payment.createdAt)}</td>
+                          <td className="py-4 px-6">
+                            ${parseFloat(payment.amount).toFixed(2)}
+                          </td>
+                          <td className="py-4 px-6">
+                            {formatDate(payment.createdAt)}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -225,7 +243,9 @@ const Earnings = () => {
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold mb-4 text-gray-700">Withdrawal History</h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-700">
+                Withdrawal History
+              </h3>
               {withdrawals.length === 0 ? (
                 <div className="bg-gray-50 p-4 rounded-lg text-center">
                   <p className="text-gray-600">No withdrawal history found.</p>
@@ -248,7 +268,9 @@ const Earnings = () => {
                             index % 2 === 0 ? "bg-gray-50" : "bg-white"
                           }`}
                         >
-                          <td className="py-4 px-6">${parseFloat(withdrawal.amount).toFixed(2)}</td>
+                          <td className="py-4 px-6">
+                            ${parseFloat(withdrawal.amount).toFixed(2)}
+                          </td>
                           <td className="py-4 px-6">
                             <div className="flex items-center">
                               {getStatusIcon(withdrawal.status)}
@@ -257,11 +279,14 @@ const Earnings = () => {
                                   withdrawal.status
                                 )}`}
                               >
-                                {withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
+                                {withdrawal.status.charAt(0).toUpperCase() +
+                                  withdrawal.status.slice(1)}
                               </span>
                             </div>
                           </td>
-                          <td className="py-4 px-6">{formatDate(withdrawal.createdAt)}</td>
+                          <td className="py-4 px-6">
+                            {formatDate(withdrawal.createdAt)}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -281,20 +306,35 @@ const Earnings = () => {
             className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md"
           >
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-[#009ee2]">Request Withdrawal</h2>
+              <h2 className="text-2xl font-bold text-[#009ee2]">
+                Request Withdrawal
+              </h2>
               <button
                 onClick={() => setShowWithdrawModal(false)}
                 className="text-gray-500 hover:text-gray-700"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  ></path>
                 </svg>
               </button>
             </div>
 
             <form onSubmit={handleWithdrawSubmit}>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="bankName">
+                <label
+                  className="block text-gray-700 text-sm font-bold mb-2"
+                  htmlFor="bankName"
+                >
                   Bank Name
                 </label>
                 <input
@@ -309,12 +349,17 @@ const Earnings = () => {
                   placeholder="Enter bank name"
                 />
                 {formErrors.bankName && (
-                  <p className="text-red-500 text-xs italic mt-1">{formErrors.bankName}</p>
+                  <p className="text-red-500 text-xs italic mt-1">
+                    {formErrors.bankName}
+                  </p>
                 )}
               </div>
 
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="accountNumber">
+                <label
+                  className="block text-gray-700 text-sm font-bold mb-2"
+                  htmlFor="accountNumber"
+                >
                   Account Number
                 </label>
                 <input
@@ -324,17 +369,24 @@ const Earnings = () => {
                   value={formData.accountNumber}
                   onChange={handleInputChange}
                   className={`w-full px-3 py-2 border ${
-                    formErrors.accountNumber ? "border-red-500" : "border-gray-300"
+                    formErrors.accountNumber
+                      ? "border-red-500"
+                      : "border-gray-300"
                   } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#009ee2]`}
                   placeholder="Enter account number"
                 />
                 {formErrors.accountNumber && (
-                  <p className="text-red-500 text-xs italic mt-1">{formErrors.accountNumber}</p>
+                  <p className="text-red-500 text-xs italic mt-1">
+                    {formErrors.accountNumber}
+                  </p>
                 )}
               </div>
 
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="routingNumber">
+                <label
+                  className="block text-gray-700 text-sm font-bold mb-2"
+                  htmlFor="routingNumber"
+                >
                   Routing Number
                 </label>
                 <input
@@ -344,17 +396,24 @@ const Earnings = () => {
                   value={formData.routingNumber}
                   onChange={handleInputChange}
                   className={`w-full px-3 py-2 border ${
-                    formErrors.routingNumber ? "border-red-500" : "border-gray-300"
+                    formErrors.routingNumber
+                      ? "border-red-500"
+                      : "border-gray-300"
                   } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#009ee2]`}
                   placeholder="Enter routing number"
                 />
                 {formErrors.routingNumber && (
-                  <p className="text-red-500 text-xs italic mt-1">{formErrors.routingNumber}</p>
+                  <p className="text-red-500 text-xs italic mt-1">
+                    {formErrors.routingNumber}
+                  </p>
                 )}
               </div>
 
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="accountHolderName">
+                <label
+                  className="block text-gray-700 text-sm font-bold mb-2"
+                  htmlFor="accountHolderName"
+                >
                   Account Holder Name
                 </label>
                 <input
@@ -364,17 +423,24 @@ const Earnings = () => {
                   value={formData.accountHolderName}
                   onChange={handleInputChange}
                   className={`w-full px-3 py-2 border ${
-                    formErrors.accountHolderName ? "border-red-500" : "border-gray-300"
+                    formErrors.accountHolderName
+                      ? "border-red-500"
+                      : "border-gray-300"
                   } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#009ee2]`}
                   placeholder="Enter account holder name"
                 />
                 {formErrors.accountHolderName && (
-                  <p className="text-red-500 text-xs italic mt-1">{formErrors.accountHolderName}</p>
+                  <p className="text-red-500 text-xs italic mt-1">
+                    {formErrors.accountHolderName}
+                  </p>
                 )}
               </div>
 
               <div className="mb-6">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="amount">
+                <label
+                  className="block text-gray-700 text-sm font-bold mb-2"
+                  htmlFor="amount"
+                >
                   Amount
                 </label>
                 <input
