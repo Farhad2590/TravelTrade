@@ -10,18 +10,19 @@ import vectortwo from "../assets/login/Login_Vector_Two.png";
 import vectorthree from "../assets/login/Login_Vector_Three.png";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../firebase/firebase.configue";
+import { signOut } from "firebase/auth";
 
 const SignUp = ({ userType }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location?.state || "/";
 
-  const { createUser, updateUserProfile } = UseAuth();
+  const { createUser, updateUserProfile, sendVerificationEmail } = UseAuth();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -60,6 +61,8 @@ const SignUp = ({ userType }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
 
     if (!validatePassword(formData.password)) {
       setPasswordValid(false);
@@ -75,10 +78,16 @@ const SignUp = ({ userType }) => {
 
     try {
       setLoading(true);
+      
+      // Create Firebase user
       const result = await createUser(formData.email, formData.password);
-      console.log(result);
+      console.log("User created:", result);
 
-       await setDoc(doc(db, "users", result.user.uid), {
+      // Update user profile
+      await updateUserProfile(formData.name, "");
+
+      // Create Firestore documents
+      await setDoc(doc(db, "users", result.user.uid), {
         username: formData.name,
         email: formData.email,
         id: result.user.uid,
@@ -88,10 +97,11 @@ const SignUp = ({ userType }) => {
       await setDoc(doc(db, "userchats", result.user.uid), {
         chats: [],
       });
-      
 
-      await updateUserProfile(formData.name, "");
+      // Send verification email
+      await sendVerificationEmail(result.user);
 
+      // Create user in MongoDB
       const userData = {
         email: formData.email.toLowerCase(),
         name: formData.name,
@@ -101,10 +111,16 @@ const SignUp = ({ userType }) => {
         createdAt: new Date().toISOString(),
         role: userType === "traveler" ? "traveler" : "sender",
         firebaseId: result.user.uid,
+        emailVerified: false, // Track email verification status
       };
 
       try {
         await axios.post("http://localhost:9000/users", userData);
+        
+        // Sign out the user immediately after registration
+        await signOut(result.user.auth);
+        
+        // Reset form
         setFormData({
           name: "",
           email: "",
@@ -113,7 +129,16 @@ const SignUp = ({ userType }) => {
           confirmPassword: "",
           userType: userType,
         });
-        navigate(from, { replace: true });
+
+        setSuccess(
+          "Account created successfully! Please check your email and click the verification link before signing in."
+        );
+
+        // Redirect to signin page after 3 seconds
+        setTimeout(() => {
+          navigate("/signin");
+        }, 3000);
+
       } catch (apiError) {
         console.error(
           "API Error:",
@@ -123,7 +148,15 @@ const SignUp = ({ userType }) => {
       }
     } catch (error) {
       console.error("Error creating user:", error);
-      setError("Failed to create account. Please try again.");
+      if (error.code === 'auth/email-already-in-use') {
+        setError("An account with this email already exists.");
+      } else if (error.code === 'auth/weak-password') {
+        setError("Password is too weak. Please choose a stronger password.");
+      } else if (error.code === 'auth/invalid-email') {
+        setError("Please enter a valid email address.");
+      } else {
+        setError("Failed to create account. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -132,6 +165,36 @@ const SignUp = ({ userType }) => {
   const getRoleTitle = () => {
     return userType === "traveler" ? "Traveler" : "Product Sender";
   };
+
+  // Show success message if registration was successful
+  if (success) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
+          <div className="mb-4">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Check Your Email!</h2>
+          <p className="text-gray-600 mb-6">{success}</p>
+          <div className="space-y-4">
+            <Link 
+              to="/signin" 
+              className="block w-full bg-[#009ee2] text-white font-medium py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
+            >
+              Go to Sign In
+            </Link>
+            <p className="text-sm text-gray-500">
+              Didn't receive the email? Check your spam folder or contact support.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen">
@@ -300,7 +363,11 @@ const SignUp = ({ userType }) => {
             </div>
 
             {/* Error Message */}
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
 
             {/* Signup Button */}
             <button
@@ -314,7 +381,7 @@ const SignUp = ({ userType }) => {
             {/* Login Link */}
             <div className="text-center text-sm text-gray-500">
               Already have an account?{" "}
-              <Link to="/" className="text-[#009ee2] hover:underline">
+              <Link to="/signin" className="text-[#009ee2] hover:underline">
                 Login
               </Link>
             </div>

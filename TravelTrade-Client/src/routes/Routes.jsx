@@ -33,6 +33,7 @@ import GivenReviews from "../Pages/SenderPages/GivenReviews/GivenReviews";
 import MyReviews from "../Pages/TravellerPages/MyReviews/MyReviews";
 import AllReviews from "../Pages/AdminPages/AllReviews/AllReviews";
 import PlatformAnalytics from "../Pages/AdminPages/PlatfromAnalytics/PlatfromAnalytics";
+import EmailVerificationPage from "../Pages/EmailVerificationPage";
 
 export const router = createBrowserRouter([
   {
@@ -70,6 +71,10 @@ export const router = createBrowserRouter([
       {
         path: "/payment-result",
         element: <PaymentResult />,
+      },
+      {
+        path: "/verify-email",
+        element: <EmailVerificationPage />,
       },
     ],
   },

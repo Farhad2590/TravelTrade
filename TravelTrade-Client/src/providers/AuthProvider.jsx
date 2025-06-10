@@ -9,6 +9,8 @@ import {
   signInWithPopup,
   signOut,
   updateProfile,
+  sendEmailVerification,
+  reload,
 } from 'firebase/auth'
 import { app } from '../firebase/firebase.configue'
 import toast from 'react-hot-toast'
@@ -28,14 +30,73 @@ const AuthProvider = ({ children }) => {
     return createUserWithEmailAndPassword(auth, email, password)
   }
 
-  const signIn = (email, password) => {
+  const signIn = async (email, password) => {
     setLoading(true)
-    return signInWithEmailAndPassword(auth, email, password)
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, password)
+      
+      // Check if email is verified
+      if (!result.user.emailVerified) {
+        // Sign out the user immediately if email is not verified
+        await signOut(auth)
+        throw new Error('Please verify your email before signing in. Check your inbox for the verification link.')
+      }
+      
+      return result
+    } catch (error) {
+      setLoading(false)
+      throw error
+    }
   }
 
-  const signInWithGoogle = () => {
+  const signInWithGoogle = async () => {
     setLoading(true)
-    return signInWithPopup(auth, googleProvider)
+    try {
+      const result = await signInWithPopup(auth, googleProvider)
+      // Google accounts are automatically verified
+      return result
+    } catch (error) {
+      setLoading(false)
+      throw error
+    }
+  }
+
+  const sendVerificationEmail = async (user) => {
+    try {
+      await sendEmailVerification(user, {
+        url: `${window.location.origin}/signin`, // Redirect to signin page after verification
+        handleCodeInApp: false,
+      })
+      toast.success('Verification email sent! Please check your inbox.')
+    } catch (error) {
+      console.error('Error sending verification email:', error)
+      toast.error('Failed to send verification email. Please try again.')
+      throw error
+    }
+  }
+
+  const resendVerificationEmail = async () => {
+    if (auth.currentUser && !auth.currentUser.emailVerified) {
+      try {
+        await sendEmailVerification(auth.currentUser, {
+          url: `${window.location.origin}/signin`,
+          handleCodeInApp: false,
+        })
+        toast.success('Verification email sent! Please check your inbox.')
+      } catch (error) {
+        console.error('Error sending verification email:', error)
+        toast.error('Failed to send verification email. Please try again.')
+        throw error
+      }
+    }
+  }
+
+  const checkEmailVerification = async () => {
+    if (auth.currentUser) {
+      await reload(auth.currentUser)
+      return auth.currentUser.emailVerified
+    }
+    return false
   }
 
   const resetPassword = email => {
@@ -62,8 +123,13 @@ const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser)
       if (currentUser) {
-        // Fetch additional user data from Firestore when auth state changes
-        await fetchUserInfo(currentUser.uid)
+        // Only fetch additional user data if email is verified
+        if (currentUser.emailVerified) {
+          await fetchUserInfo(currentUser.uid)
+        } else {
+          // If email is not verified, clear user data
+          clearUser()
+        }
       } else {
         clearUser() // Clear user store when no user is logged in
       }
@@ -82,6 +148,9 @@ const AuthProvider = ({ children }) => {
     resetPassword,
     logOut,
     updateUserProfile,
+    sendVerificationEmail,
+    resendVerificationEmail,
+    checkEmailVerification,
   }
 
   return (

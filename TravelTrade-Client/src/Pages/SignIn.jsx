@@ -13,18 +13,41 @@ const SignIn = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const { signIn } = useAuth();
+  const [showResendVerification, setShowResendVerification] = useState(false);
+  const { signIn, resendVerificationEmail } = useAuth();
   const navigate = useNavigate();
 
   const handleSignIn = async (e) => {
     e.preventDefault();
+    setError("");
+    setShowResendVerification(false);
+    
     try {
       const result = await signIn(email, password);
       console.log(result.user);
       navigate("/");
     } catch (err) {
       console.error(err);
-      setError("Invalid email or password");
+      if (err.message.includes('verify your email')) {
+        setError(err.message);
+        setShowResendVerification(true);
+      } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
+        setError("Invalid email or password");
+      } else if (err.code === 'auth/user-not-found') {
+        setError("No account found with this email");
+      } else if (err.code === 'auth/too-many-requests') {
+        setError("Too many failed attempts. Please try again later.");
+      } else {
+        setError("Sign in failed. Please try again.");
+      }
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      await resendVerificationEmail();
+    } catch (err) {
+      console.error('Error resending verification email:', err);
     }
   };
 
@@ -100,7 +123,20 @@ const SignIn = () => {
             </div>
 
             {/* Error Message */}
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                <p className="text-red-600 text-sm">{error}</p>
+                {showResendVerification && (
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    className="mt-2 text-sm text-[#009ee2] hover:underline font-medium"
+                  >
+                    Resend Verification Email
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Login Button */}
             <button

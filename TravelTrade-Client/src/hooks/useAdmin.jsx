@@ -11,7 +11,7 @@ const UseAdmin = () => {
     queryKey: [user?.email, "isAdmin"],
     queryFn: async () => {
       const res = await axios.get(
-        // `http://localhost:9000/users/admin/travelTrade@gmail.com`
+        // `http://localhost:9000/users/admin/traveltradesihab@gmail.com`
         `http://localhost:9000/users/admin/${user?.email}`
       );
       // console.log(res);

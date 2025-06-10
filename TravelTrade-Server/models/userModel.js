@@ -170,7 +170,7 @@ class UserModel {
 
   static async updateAdminBalance(amount) {
     const collection = await this.getCollection();
-    const adminEmail = "traveltrade@gmail.com";
+    const adminEmail = "traveltradesihab@gmail.com";
 
     return collection.updateOne(
       { email: adminEmail },

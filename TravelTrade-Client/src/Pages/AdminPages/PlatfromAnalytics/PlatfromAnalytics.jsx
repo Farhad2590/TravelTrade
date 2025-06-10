@@ -24,7 +24,7 @@ const PlatformAnalytics = () => {
       try {
         setLoading(true);
         // Fetch admin data with balance
-        const adminResponse = await axios.get('http://localhost:9000/users/traveltrade@gmail.com');
+        const adminResponse = await axios.get('http://localhost:9000/users/traveltradesihab@gmail.com');
         const adminData = adminResponse.data;
         
         // Fetch all completed payments
