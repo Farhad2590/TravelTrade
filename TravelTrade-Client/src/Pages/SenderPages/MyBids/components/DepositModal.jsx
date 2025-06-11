@@ -5,17 +5,20 @@ import toast from "react-hot-toast";
 const DepositModal = ({ order, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  console.log(order);
+  
 
   const handlePayment = async () => {
     setLoading(true);
     setError("");
-    
+
     try {
       const response = await axios.post(`http://localhost:9000/initiate`, {
         orderId: order._id,
         amount: order.totalCost,
         email: order.senderEmail,
         travelerEmail: order.travelerEmail,
+        request_type: order.request_type, // Include request_type in payment
       });
 
       if (response.data.success && response.data.paymentUrl) {
@@ -66,11 +69,12 @@ const DepositModal = ({ order, onClose }) => {
           >
             {loading ? "Processing..." : `Pay $${order.totalCost}`}
           </button>
-          
+
           {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
-          
+
           <p className="text-sm text-gray-500">
-            You will be redirected to SSLCommerz secure payment page to complete your transaction.
+            You will be redirected to SSLCommerz secure payment page to complete
+            your transaction.
           </p>
         </div>
       </div>

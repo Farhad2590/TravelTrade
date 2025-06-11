@@ -34,6 +34,7 @@ import MyReviews from "../Pages/TravellerPages/MyReviews/MyReviews";
 import AllReviews from "../Pages/AdminPages/AllReviews/AllReviews";
 import PlatformAnalytics from "../Pages/AdminPages/PlatfromAnalytics/PlatfromAnalytics";
 import EmailVerificationPage from "../Pages/EmailVerificationPage";
+import AdminBids from "../Pages/AdminPages/AdminBids/AdminBids";
 
 export const router = createBrowserRouter([
   {
@@ -97,6 +98,14 @@ export const router = createBrowserRouter([
         element: (
           <AdminRoute>
             <UserManagement />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/dashboard/all-bids",
+        element: (
+          <AdminRoute>
+            <AdminBids />
           </AdminRoute>
         ),
       },

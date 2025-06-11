@@ -115,6 +115,11 @@ const Dashboard = () => {
       icon: <FaUsersCog />,
     },
     {
+      name: "All Bids",
+      path: "/dashboard/all-bids",
+      icon: <FaUsersCog />,
+    },
+    {
       name: "Transaction Monitor",
       path: "/dashboard/transactions",
       icon: <FaMoneyBillWave />,

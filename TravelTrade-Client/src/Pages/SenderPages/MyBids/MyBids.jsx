@@ -60,6 +60,7 @@ const MyBids = () => {
     const queryParams = new URLSearchParams(window.location.search);
     const paymentStatus = queryParams.get("payment");
     const orderId = queryParams.get("orderId");
+    console.log(orderId);
 
     if (
       paymentStatus &&
@@ -136,6 +137,8 @@ const MyBids = () => {
         return "#F97316"; // orange-500
       case "paymentDone":
         return "#3B82F6"; // blue-500
+      case "payment_done_check_needed":
+        return "#8B5CF6"; // violet-500
       case "parcel_Pickup":
         return "#A855F7"; // purple-500
       case "picked_Up":
@@ -163,6 +166,8 @@ const MyBids = () => {
         return "bg-orange-100 text-orange-800";
       case "paymentDone":
         return "bg-blue-100 text-blue-800";
+      case "payment_done_check_needed":
+        return "bg-violet-100 text-violet-800";
       case "parcel_Pickup":
         return "bg-purple-100 text-purple-800";
       case "picked_Up":
@@ -190,6 +195,8 @@ const MyBids = () => {
         return <FaHourglassHalf className="mr-2" />;
       case "paymentDone":
         return <FaMoneyBillWave className="mr-2" />;
+      case "payment_done_check_needed":
+        return <FaHourglassHalf className="mr-2" />;
       case "parcel_Pickup":
         return <FaBoxOpen className="mr-2" />;
       case "picked_Up":
@@ -217,6 +224,8 @@ const MyBids = () => {
         return "Please complete your payment to proceed.";
       case "paymentDone":
         return "Payment has been verified. Please provide pickup instructions.";
+      case "payment_done_check_needed":
+        return "Payment verified. Waiting for traveler to upload security check.";
       case "parcel_Pickup":
         return "Pickup instructions shared. Waiting for traveler to pick up.";
       case "picked_Up":
@@ -241,26 +250,47 @@ const MyBids = () => {
   };
 
   const handleDepositSuccess = async (orderId) => {
+    console.log(orderId);
+
     setProcessingAction("updating");
     try {
+      // Get the full order details including request_type
+      const orderResponse = await axios.get(`${api}/bids/${orderId}`);
+      const order = orderResponse.data;
+
+      // Make sure request_type exists in the order object
+      if (!order.request_type) {
+        throw new Error("Request type not found in order data");
+      }
+
+      const status =
+        order.request_type === "send"
+          ? "payment_done_check_needed"
+          : "paymentDone";
+
+      // Update the status with the determined value
       await axios.patch(`${api}/bids/${orderId}/updateStatus`, {
-        status: "paymentDone",
+        status: status,
       });
+
       fetchAllOrders();
       setShowDepositModal(false);
 
       const toastStyle = {
         style: {
-          background: getStatusColor("paymentDone"),
+          background: getStatusColor(status),
           color: "#fff",
           padding: "16px",
           borderRadius: "8px",
         },
         duration: 3000,
-        icon: getStatusIcon("paymentDone"),
+        icon: getStatusIcon(status),
       };
 
-      toast.success("Payment completed successfully!", toastStyle);
+      toast.success(
+        `Payment completed successfully! Status: ${status.replace(/_/g, " ")}`,
+        toastStyle
+      );
     } catch (error) {
       console.error("Error updating order status:", error);
       toast.error("Failed to update payment status");
@@ -347,6 +377,7 @@ const MyBids = () => {
         });
         break;
       case "paymentDone":
+      case "checkStatusApproved":
         actions.push({
           icon: <FaTruck />,
           label: "Add Pickup Instructions",
@@ -380,6 +411,7 @@ const MyBids = () => {
     const allStatuses = [
       "payment_pending",
       "paymentDone",
+      "payment_done_check_needed",
       "parcel_Pickup",
       "picked_Up",
       "inDeparture",

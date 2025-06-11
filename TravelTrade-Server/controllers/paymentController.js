@@ -82,9 +82,7 @@ const paymentController = {
 
   handleSuccess: async (req, res) => {
     try {
-      const { orderId } = req.params; // Changed from bookingId to orderId to match route
-
-      // Extract transaction ID from both query and body parameters
+      const { orderId } = req.params;
       let tran_id, amount;
 
       if (req.method === "GET") {
@@ -94,15 +92,6 @@ const paymentController = {
         tran_id = req.body.tran_id;
         amount = req.body.amount;
       }
-
-      console.log("Payment success data:", {
-        method: req.method,
-        orderId, // Changed from bookingId
-        tran_id,
-        amount,
-        query: req.query,
-        body: req.body,
-      });
 
       if (!tran_id || !amount) {
         const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
@@ -129,19 +118,18 @@ const paymentController = {
         paymentData.tran_id !== tran_id
       ) {
         await PaymentModel.updatePaymentStatus(tran_id, "failed");
-
         const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
         return res.redirect(
           `${frontendUrl}/payment-result?payment=failed&error=verification_failed&order_id=${orderId}`
         );
       }
 
-      const paymentUpdateResult = await PaymentModel.updatePaymentStatus(
+      // Update payment status
+      await PaymentModel.updatePaymentStatus(
         tran_id,
         "completed",
         paymentData.val_id || null
       );
-      console.log("Payment update result:", paymentUpdateResult);
 
       // Calculate and update platform fees (10%)
       const platformFee = parseFloat(amount) * 0.1;
@@ -150,13 +138,24 @@ const paymentController = {
       // Update admin balance
       await UserModel.updateAdminBalance(platformFee);
 
-      // Update bid status to "paymentDone"
+      // First get the bid to check request_type
+      const bid = await BidModel.getBidById(orderId);
+      if (!bid) {
+        throw new Error("Bid not found");
+      }
+
+      // Determine status based on request_type
+      const status =
+        bid.request_type === "send"
+          ? "payment_done_check_needed"
+          : "paymentDone";
+
+      // Update bid status with the determined status
       const bidUpdateResult = await BidModel.updateBidStatus(
         orderId,
-        "paymentDone",
-        travelerEarnings // Pass the actual amount traveler will receive
+        status,
+        travelerEarnings
       );
-      console.log("Bid update result:", bidUpdateResult);
 
       if (!bidUpdateResult.modifiedCount) {
         console.error("Failed to update bid status - no document modified");

@@ -9,7 +9,7 @@ const RequestPage = () => {
   const { id, type } = useParams();
   const api = "http://localhost:9000";
   const [post, setPost] = useState({});
-   const [userData, setUserData] = useState({});
+  const [userData, setUserData] = useState({});
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     parcel_type: "",
@@ -20,6 +20,8 @@ const RequestPage = () => {
   });
   const [totalCost, setTotalCost] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isImportantParcel, setIsImportantParcel] = useState(false);
+
   const navigate = useNavigate();
   const { user } = useAuth();
   console.log(userData);
@@ -39,10 +41,10 @@ const RequestPage = () => {
     fetchPostDetails();
   }, [id]);
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get(`${api}/users/${user?.email}`); 
+        const response = await axios.get(`${api}/users/${user?.email}`);
         setUserData(response.data);
       } catch (error) {
         console.error("Error fetching post details:", error);
@@ -89,6 +91,7 @@ const RequestPage = () => {
 
     const finalData = {
       ...formData,
+      isImportantParcel,
       request_type: type,
       postId: id,
       travelerEmail: post.email,
@@ -99,7 +102,7 @@ const RequestPage = () => {
       departureCity: post.departureCity,
       arrivalCity: post.arrivalCity,
       travelDate: post.departureDateTime?.slice(0, 10),
-      travelerId: userData.firebaseId
+      travelerId: userData.firebaseId,
     };
 
     try {
@@ -160,6 +163,27 @@ const RequestPage = () => {
                 required
               />
             </div>
+            {type === "send" && (
+              <div className="flex items-start">
+                <div className="flex items-center h-5">
+                  <input
+                    id="important"
+                    name="isImportantParcel"
+                    type="checkbox"
+                    checked={isImportantParcel}
+                    onChange={(e) => setIsImportantParcel(e.target.checked)}
+                    className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300"
+                  />
+                </div>
+                <label
+                  htmlFor="important"
+                  className="ml-3 text-sm font-medium text-gray-700"
+                >
+                  This parcel contains high-value items (requires blank check
+                  from traveler)
+                </label>
+              </div>
+            )}
 
             <div>
               <label className="block mb-2 font-medium text-gray-700">

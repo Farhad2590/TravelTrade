@@ -25,14 +25,42 @@ class BidModel {
     return collection.findOne({ postId });
   }
 
+  static async updateCheckStatus(bidId, status, checkImage = null) {
+    const collection = await this.getCollection();
+    const updateData = {
+      checkStatus: status,
+      status: status, // Also update the main status
+      updatedAt: new Date(), // Add timestamp for when check was uploaded
+    };
+
+    if (checkImage) {
+      updateData.checkImage = checkImage;
+      updateData.checkUploadedAt = new Date(); // Track when check was uploaded
+    }
+
+    return collection.updateOne(
+      { _id: getObjectId(bidId) },
+      { $set: updateData }
+    );
+  }
+
+  static async getAllBidsForAdmin() {
+    const collection = await this.getCollection();
+    return collection.find().toArray();
+  }
+
+  static async getBidById(bidId) {
+    const collection = await this.getCollection();
+    return collection.findOne({ _id: getObjectId(bidId) });
+  }
   static async updateBidStatus(bidId, status) {
     const collection = await this.getCollection();
-    return collection.updateOne(
+    const result = await collection.updateOne(
       { _id: getObjectId(bidId) },
       { $set: { status } }
     );
+    return result;
   }
-  
 
   static async getUserBids(email) {
     const collection = await this.getCollection();

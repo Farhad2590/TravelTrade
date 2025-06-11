@@ -18,10 +18,12 @@ import {
   FaStar,
   FaArrowRight,
   FaArrowCircleRight,
+  FaFileUpload,
 } from "react-icons/fa";
 import ParcelInstructionsModal from "./components/ParcelInstructionsModal";
 import BidDetailsModal from "./components/BidDetailsModal";
 import { toast } from "react-hot-toast";
+import BlankCheckModal from "./components/BlankCheckModal";
 
 const RequestedBids = () => {
   const { user } = useAuth();
@@ -32,6 +34,8 @@ const RequestedBids = () => {
   const [selectedBid, setSelectedBid] = useState(null);
   const [showStatusUpdate, setShowStatusUpdate] = useState(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [showCheckModal, setShowCheckModal] = useState(false);
+  const [selectedBidForCheck, setSelectedBidForCheck] = useState(null);
 
   const api = "http://localhost:9000";
 
@@ -67,21 +71,30 @@ const RequestedBids = () => {
   const updateStatus = async (bidId, status) => {
     setUpdatingStatus(true);
     try {
-      await axios.patch(`${api}/bids/${bidId}/updateStatus`, { status });
+      // Determine the correct status based on request type
+      const finalStatus =
+        status === "paymentDone" &&
+        requests.find((b) => b._id === bidId)?.request_type === "send"
+          ? "payment_done_check_needed"
+          : status;
+
+      await axios.patch(`${api}/bids/${bidId}/updateStatus`, {
+        status: finalStatus,
+      });
       fetchRequests();
       setShowStatusUpdate(null);
 
       // Show styled toast based on status
-      const statusLabel = status.replace(/_/g, " ");
+      const statusLabel = finalStatus.replace(/_/g, " ");
       const toastStyle = {
         style: {
-          background: getStatusColor(status),
+          background: getStatusColor(finalStatus),
           color: "#fff",
           padding: "16px",
           borderRadius: "8px",
         },
         duration: 3000,
-        icon: getStatusIcon(status),
+        icon: getStatusIcon(finalStatus),
       };
 
       toast.success(`Status updated to ${statusLabel}`, toastStyle);
@@ -93,6 +106,18 @@ const RequestedBids = () => {
     }
   };
 
+  const handleCheckUpload = (bid) => {
+    setSelectedBidForCheck(bid);
+    setShowCheckModal(true);
+  };
+
+  // Add this to the status update logic in updateStatus function
+  if (status === "paymentDone" && request.isImportantParcel) {
+    // Don't update status directly, require check upload first
+    handleCheckUpload(request);
+    return;
+  }
+
   const getStatusColor = (status) => {
     switch (status) {
       case "travellerPending":
@@ -101,8 +126,12 @@ const RequestedBids = () => {
         return "#EF4444"; // red
       case "payment_pending":
         return "#F97316"; // orange
+      case "payment_done_check_needed":
+        return "#8B5CF6"; // violet
       case "paymentDone":
         return "#3B82F6"; // blue
+      case "checkStatusPending":
+        return "#7C3AED"; // violet-600
       case "parcel_Pickup":
         return "#A855F7"; // purple
       case "picked_Up":
@@ -128,8 +157,12 @@ const RequestedBids = () => {
         return "bg-red-100 text-red-800";
       case "payment_pending":
         return "bg-orange-100 text-orange-800";
+      case "payment_done_check_needed":
+        return "bg-violet-100 text-violet-800";
       case "paymentDone":
         return "bg-blue-100 text-blue-800";
+      case "checkStatusPending":
+        return "bg-violet-100 text-violet-800";
       case "parcel_Pickup":
         return "bg-purple-100 text-purple-800";
       case "picked_Up":
@@ -157,6 +190,10 @@ const RequestedBids = () => {
         return <FaHourglassHalf className="mr-2" />;
       case "paymentDone":
         return <FaMoneyBillWave className="mr-2" />;
+      case "payment_done_check_needed":
+        return <FaFileUpload className="mr-2" />;
+      case "checkStatusPending":
+        return <FaHourglassHalf className="mr-2" />;
       case "parcel_Pickup":
         return <FaBoxOpen className="mr-2" />;
       case "picked_Up":
@@ -174,6 +211,63 @@ const RequestedBids = () => {
     }
   };
 
+  const getStatusDescription = (status) => {
+    switch (status) {
+      case "travellerPending":
+        return "Waiting for response from the traveler.";
+      case "rejected":
+        return "Unfortunately, this bid has been rejected.";
+      case "payment_pending":
+        return "Traveler is waiting for payment to proceed.";
+      case "paymentDone":
+        return "Payment has been received. Please update status to parcel pickup.";
+      case "payment_done_check_needed":
+        return "Payment received. Please upload blank check for verification.";
+      case "checkStatusPending":
+        return "Check uploaded successfully. Waiting for admin verification to proceed.";
+      case "parcel_Pickup":
+        return "Pickup instructions shared. Waiting for traveler to pick up.";
+      case "picked_Up":
+        return "The parcel has been picked up successfully.";
+      case "inDeparture":
+        return "The parcel is at departure location.";
+      case "inArrival":
+        return "The parcel has arrived at the destination.";
+      case "delivered":
+        return "The parcel has been delivered to the recipient.";
+      case "received":
+        return "Delivery confirmed and completed.";
+      default:
+        return "Status pending update.";
+    }
+  };
+
+  const getStatusTransitionSteps = (status) => {
+    const allStatuses = [
+      "travellerPending",
+      "payment_pending",
+      "paymentDone",
+      "payment_done_check_needed",
+      "checkStatusPending",
+      "parcel_Pickup",
+      "picked_Up",
+      "inDeparture",
+      "inArrival",
+      "delivered",
+      "received",
+    ];
+
+    // Filter out "rejected" as it's a terminal state from any point
+    if (status === "rejected") {
+      return ["rejected"];
+    }
+
+    const currentIndex = allStatuses.indexOf(status);
+    if (currentIndex === -1) return [status];
+
+    return allStatuses.slice(0, currentIndex + 1);
+  };
+
   const getNextStatusAction = (currentStatus) => {
     switch (currentStatus) {
       case "travellerPending":
@@ -189,6 +283,16 @@ const RequestedBids = () => {
             label: "Reject",
             color: "red",
             icon: <FaTimes />,
+          },
+        ];
+      case "payment_done_check_needed":
+        return [
+          {
+            status: "checkStatusPending",
+            label: "Upload Check",
+            color: "purple",
+            icon: <FaFileUpload />,
+            action: (bid) => handleCheckUpload(bid), // This will show the modal
           },
         ];
       case "paymentDone":
@@ -253,56 +357,59 @@ const RequestedBids = () => {
     });
   };
 
-  const getStatusDescription = (status) => {
-    switch (status) {
-      case "travellerPending":
-        return "Waiting for response from the traveler.";
-      case "rejected":
-        return "Unfortunately, this bid has been rejected.";
-      case "payment_pending":
-        return "Traveler is waiting for payment to proceed.";
-      case "paymentDone":
-        return "Payment has been received. Please update status to parcel pickup.";
-      case "parcel_Pickup":
-        return "Pickup instructions shared. Waiting for traveler to pick up.";
-      case "picked_Up":
-        return "The parcel has been picked up successfully.";
-      case "inDeparture":
-        return "The parcel is at departure location.";
-      case "inArrival":
-        return "The parcel has arrived at the destination.";
-      case "delivered":
-        return "The parcel has been delivered to the recipient.";
-      case "received":
-        return "Delivery confirmed and completed.";
-      default:
-        return "Status pending update.";
-    }
-  };
+  // const getStatusDescription = (status) => {
+  //   switch (status) {
+  //     case "travellerPending":
+  //       return "Waiting for response from the traveler.";
+  //     case "rejected":
+  //       return "Unfortunately, this bid has been rejected.";
+  //     case "payment_pending":
+  //       return "Traveler is waiting for payment to proceed.";
+  //     case "paymentDone":
+  //       return "Payment has been received. Please update status to parcel pickup.";
+  //     case "payment_done_check_needed":
+  //       return "Payment received. Please upload blank check for verification.";
+  //     case "parcel_Pickup":
+  //       return "Pickup instructions shared. Waiting for traveler to pick up.";
+  //     case "picked_Up":
+  //       return "The parcel has been picked up successfully.";
+  //     case "inDeparture":
+  //       return "The parcel is at departure location.";
+  //     case "inArrival":
+  //       return "The parcel has arrived at the destination.";
+  //     case "delivered":
+  //       return "The parcel has been delivered to the recipient.";
+  //     case "received":
+  //       return "Delivery confirmed and completed.";
+  //     default:
+  //       return "Status pending update.";
+  //   }
+  // };
 
-  const getStatusTransitionSteps = (status) => {
-    const allStatuses = [
-      "travellerPending",
-      "payment_pending",
-      "paymentDone",
-      "parcel_Pickup",
-      "picked_Up",
-      "inDeparture",
-      "inArrival",
-      "delivered",
-      "received",
-    ];
+  // const getStatusTransitionSteps = (status) => {
+  //   const allStatuses = [
+  //     "travellerPending",
+  //     "payment_pending",
+  //     "paymentDone",
+  //     "payment_done_check_needed",
+  //     "parcel_Pickup",
+  //     "picked_Up",
+  //     "inDeparture",
+  //     "inArrival",
+  //     "delivered",
+  //     "received",
+  //   ];
 
-    // Filter out "rejected" as it's a terminal state from any point
-    if (status === "rejected") {
-      return ["rejected"];
-    }
+  //   // Filter out "rejected" as it's a terminal state from any point
+  //   if (status === "rejected") {
+  //     return ["rejected"];
+  //   }
 
-    const currentIndex = allStatuses.indexOf(status);
-    if (currentIndex === -1) return [status];
+  //   const currentIndex = allStatuses.indexOf(status);
+  //   if (currentIndex === -1) return [status];
 
-    return allStatuses.slice(0, currentIndex + 1);
-  };
+  //   return allStatuses.slice(0, currentIndex + 1);
+  // };
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -412,67 +519,54 @@ const RequestedBids = () => {
                         </p>
                       </div>
 
-                      {nextActions.length > 0 && (
-                        <div className="mt-4 md:mt-0 relative">
-                          <motion.button
-                            onClick={() =>
-                              setShowStatusUpdate(
-                                showStatusUpdate === request._id
-                                  ? null
-                                  : request._id
-                              )
-                            }
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            Update Status{" "}
-                            <FaArrowCircleRight className="ml-2" />
-                          </motion.button>
+                      {nextActions.map((action) => {
+                        // Check if this action has a custom action function
+                        if (action.action) {
+                          return (
+                            <motion.button
+                              key={action.status}
+                              disabled={updatingStatus}
+                              onClick={() => {
+                                setShowStatusUpdate(null); // Close the dropdown
+                                action.action(request); // Call the custom action
+                              }}
+                              className={`flex items-center px-4 py-2 rounded-lg transition duration-200 text-white`}
+                              style={{
+                                backgroundColor: getStatusColor(action.status),
+                              }}
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              {action.icon}
+                              <span className="ml-2">{action.label}</span>
+                            </motion.button>
+                          );
+                        }
 
-                          <AnimatePresence>
-                            {showStatusUpdate === request._id && (
-                              <motion.div
-                                initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                                transition={{ duration: 0.2 }}
-                                className="absolute right-0 bottom-12 bg-white shadow-xl rounded-lg p-3 z-20 min-w-max"
-                              >
-                                <div className="flex flex-col space-y-2">
-                                  {nextActions.map((action) => (
-                                    <motion.button
-                                      key={action.status}
-                                      disabled={updatingStatus}
-                                      onClick={() =>
-                                        updateStatus(request._id, action.status)
-                                      }
-                                      className={`flex items-center px-4 py-2 rounded-lg transition duration-200 text-white`}
-                                      style={{
-                                        backgroundColor: getStatusColor(
-                                          action.status
-                                        ),
-                                      }}
-                                      whileHover={{ scale: 1.02 }}
-                                      whileTap={{ scale: 0.98 }}
-                                    >
-                                      {updatingStatus ? (
-                                        <div className="w-4 h-4 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                                      ) : (
-                                        action.icon
-                                      )}
-                                      <span className="ml-2">
-                                        {action.label}
-                                      </span>
-                                    </motion.button>
-                                  ))}
-                                </div>
-                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-45 w-3 h-3 bg-white"></div>
-                              </motion.div>
+                        // Default action - update status directly
+                        return (
+                          <motion.button
+                            key={action.status}
+                            disabled={updatingStatus}
+                            onClick={() =>
+                              updateStatus(request._id, action.status)
+                            }
+                            className={`flex items-center px-4 py-2 rounded-lg transition duration-200 text-white`}
+                            style={{
+                              backgroundColor: getStatusColor(action.status),
+                            }}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            {updatingStatus ? (
+                              <div className="w-4 h-4 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                            ) : (
+                              action.icon
                             )}
-                          </AnimatePresence>
-                        </div>
-                      )}
+                            <span className="ml-2">{action.label}</span>
+                          </motion.button>
+                        );
+                      })}
                     </div>
 
                     {/* Status Timeline with alternating descriptions */}
@@ -601,6 +695,18 @@ const RequestedBids = () => {
         <ParcelInstructionsModal
           instruction={selectedInstruction}
           onClose={() => setShowInstructionsModal(false)}
+        />
+      )}
+
+      {showCheckModal && selectedBidForCheck && (
+        <BlankCheckModal
+          bid={selectedBidForCheck}
+          onClose={() => {
+            setShowCheckModal(false);
+            setSelectedBidForCheck(null);
+          }}
+          api={api}
+          fetchRequests={fetchRequests}
         />
       )}
     </div>

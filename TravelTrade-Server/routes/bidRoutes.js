@@ -10,6 +10,9 @@ router.get("/bids/allRequests/:travelerEmail", bidController.getBidsInTravelerPo
 
 // Get all bids for a post
 router.get("/bids/post/:postId", bidController.getBidsByPost);
+router.get("/bids/:bidId", bidController.getBidById);
+router.patch("/bids/:bidId/checkStatus", bidController.updateCheckStatus);
+router.get("/bids/admin/all", bidController.getAllBidsForAdmin);
 
 // Update bid status
 router.patch("/bids/:bidId/updateStatus", bidController.updateBidStatus);
