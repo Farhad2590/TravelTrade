@@ -15,7 +15,7 @@ class PaymentModel {
     const collection = await this.getCollection();
     return collection.find({ senderEmail }).toArray();
   }
-  // Add this method to your existing PaymentModel class
+
   static async updatePaymentStatus(transactionId, status, valId = null) {
     const collection = await this.getCollection();
     const updateData = { status };
@@ -39,6 +39,19 @@ class PaymentModel {
   static async getAllPayments() {
     const collection = await this.getCollection();
     return collection.find().toArray();
+  }
+
+  static async getPaymentByOrderId(orderId) {
+    const collection = await this.getCollection();
+    return collection.findOne({ orderId });
+  }
+
+  static async updatePaymentPayout(paymentIntentId, payoutData) {
+    const collection = await this.getCollection();
+    return collection.updateOne(
+      { paymentIntentId },
+      { $set: payoutData }
+    );
   }
 }
 

@@ -58,7 +58,6 @@ const paymentController = {
         );
       }
 
-      // Create pending payment record
       await PaymentModel.createPayment({
         travelerEmail,
         senderEmail: email,
@@ -100,7 +99,6 @@ const paymentController = {
         );
       }
 
-      // Verify payment with SSLCommerz
       const verifyUrl = `https://sandbox.sslcommerz.com/validator/api/merchantTransIDvalidationAPI.php?tran_id=${tran_id}&store_id=${
         process.env.SSLCOMMERZ_STORE_ID || "carsw683bc46e1ae21"
       }&store_passwd=${
@@ -124,44 +122,32 @@ const paymentController = {
         );
       }
 
-      // Update payment status
       await PaymentModel.updatePaymentStatus(
         tran_id,
         "completed",
         paymentData.val_id || null
       );
 
-      // Calculate and update platform fees (10%)
-      const platformFee = parseFloat(amount) * 0.1;
-      const travelerEarnings = parseFloat(amount) - platformFee;
+      // Add full amount to admin balance
+      const totalAmount = parseFloat(amount);
+      await UserModel.updateAdminBalance(totalAmount);
 
-      // Update admin balance
-      await UserModel.updateAdminBalance(platformFee);
-
-      // First get the bid to check request_type
       const bid = await BidModel.getBidById(orderId);
       if (!bid) {
         throw new Error("Bid not found");
       }
 
-      // Determine status based on request_type
       const status =
-        bid.request_type === "send"
+        bid.request_type === "send" && bid.isImportantParcel === true
           ? "payment_done_check_needed"
           : "paymentDone";
 
-      // Update bid status with the determined status
-      const bidUpdateResult = await BidModel.updateBidStatus(
-        orderId,
-        status,
-        travelerEarnings
-      );
+      const bidUpdateResult = await BidModel.updateBidStatus(orderId, status);
 
       if (!bidUpdateResult.modifiedCount) {
         console.error("Failed to update bid status - no document modified");
       }
 
-      // Redirect to frontend with success message
       const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
       res.redirect(
         `${frontendUrl}/payment-result?payment=success&tran_id=${tran_id}&amount=${amount}&order_id=${orderId}`
@@ -176,142 +162,7 @@ const paymentController = {
       );
     }
   },
-  // Fixed handleSuccess method
-  // handleSuccess: async (req, res) => {
-  //   try {
-  //     const { orderId } = req.params;
 
-  //     // Enhanced debugging
-  //     console.log("=== Payment Success Handler ===");
-  //     console.log("Method:", req.method);
-  //     console.log("Headers:", req.headers);
-  //     console.log("Request body:", req.body);
-  //     console.log("Request query:", req.query);
-  //     console.log("Request params:", req.params);
-  //     console.log("================================");
-
-  //     // Get transaction ID - SSLCommerz typically sends it as 'tran_id' in POST body or query
-  //     let tran_id;
-
-  //     if (req.method === "POST") {
-  //       // For direct callback from SSLCommerz
-  //       tran_id = req.body.tran_id;
-  //     } else {
-  //       // For user redirect
-  //       tran_id = req.query.tran_id;
-  //     }
-
-  //     // Fallback to other possible fields if still not found
-  //     if (!tran_id) {
-  //       tran_id = req.body.transaction_id || req.query.transaction_id;
-  //     }
-
-  //     console.log("Extracted transaction ID:", tran_id);
-
-  //     if (!tran_id) {
-  //       console.error("Transaction ID not found in request");
-  //       console.error("Available fields in body:", Object.keys(req.body || {}));
-  //       console.error(
-  //         "Available fields in query:",
-  //         Object.keys(req.query || {})
-  //       );
-
-  //       return res.status(400).json({
-  //         error: "Transaction ID not found",
-  //         debug: {
-  //           body: req.body,
-  //           query: req.query,
-  //           method: req.method,
-  //         },
-  //       });
-  //     }
-
-  //     // Get additional payment data from request
-  //     const amount = req.body.amount || req.query.amount || req.body.value_d;
-  //     const val_id = req.body.val_id || req.query.val_id;
-  //     const status = req.body.status || req.query.status;
-
-  //     console.log("Payment data:", { tran_id, amount, val_id, status });
-
-  //     // Verify payment with SSLCommerz
-  //     const verifyUrl = `https://sandbox.sslcommerz.com/validator/api/merchantTransIDvalidationAPI.php?tran_id=${tran_id}&store_id=${process.env.SSLCOMMERZ_STORE_ID}&store_passwd=${process.env.SSLCOMMERZ_STORE_PASSWORD}&format=json`;
-
-  //     console.log("Verifying payment with URL:", verifyUrl);
-
-  //     const verifyResponse = await axios.get(verifyUrl);
-  //     console.log("Verification response:", verifyResponse.data);
-
-  //     const paymentData = verifyResponse.data?.element?.[0];
-
-  //     if (
-  //       !verifyResponse.data ||
-  //       verifyResponse.data.APIConnect !== "DONE" ||
-  //       !paymentData ||
-  //       paymentData.status !== "VALID"
-  //     ) {
-  //       console.error("Payment verification failed:", {
-  //         apiConnect: verifyResponse.data?.APIConnect,
-  //         paymentStatus: paymentData?.status,
-  //         fullResponse: verifyResponse.data,
-  //       });
-  //       throw new Error("Payment verification failed");
-  //     }
-
-  //     console.log("Payment verified successfully");
-
-  //     // Update payment status
-  //     await PaymentModel.updatePaymentStatus(
-  //       tran_id,
-  //       "completed",
-  //       paymentData.val_id || val_id
-  //     );
-
-  //     // Update bid status
-  //     await BidModel.updateBidStatus(orderId, "paymentDone");
-
-  //     console.log("Database updated successfully");
-
-  //     // For POST requests (direct callback from SSLCommerz), return JSON
-  //     if (req.method === "POST") {
-  //       return res.json({
-  //         success: true,
-  //         message: "Payment verified successfully",
-  //         orderId,
-  //         transactionId: tran_id,
-  //       });
-  //     }
-
-  //     // For GET requests (user redirect), redirect to frontend
-  //     const frontendUrl = `${
-  //       process.env.FRONTEND_URL
-  //     }/payment-result?payment=success&orderId=${orderId}&transactionId=${tran_id}&amount=${
-  //       amount || paymentData.amount
-  //     }`;
-  //     console.log("Redirecting to:", frontendUrl);
-
-  //     res.redirect(frontendUrl);
-  //   } catch (error) {
-  //     console.error("Payment success handling error:", error);
-
-  //     if (req.method === "POST") {
-  //       return res.status(500).json({
-  //         error: error.message,
-  //         debug: {
-  //           body: req.body,
-  //           query: req.query,
-  //         },
-  //       });
-  //     }
-
-  //     res.redirect(
-  //       `${process.env.FRONTEND_URL}/payment-result?payment=failed&orderId=${
-  //         req.params.orderId
-  //       }&error=${encodeURIComponent(error.message)}`
-  //     );
-  //   }
-  // },
-
-  // Handle failed payment
   handleFailure: async (req, res) => {
     try {
       const { orderId } = req.params;
@@ -376,7 +227,6 @@ const paymentController = {
     }
   },
 
-  // IPN handler
   handleIPN: async (req, res) => {
     try {
       console.log("IPN received:", req.body);
@@ -388,7 +238,6 @@ const paymentController = {
         return res.status(400).json({ error: "Invalid transaction status" });
       }
 
-      // Verify payment
       const verifyUrl = `https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php?val_id=${val_id}&store_id=${process.env.SSLCOMMERZ_STORE_ID}&store_passwd=${process.env.SSLCOMMERZ_STORE_PASSWORD}&format=json`;
 
       const verifyResponse = await axios.get(verifyUrl);
@@ -398,7 +247,6 @@ const paymentController = {
         return res.status(400).json({ error: "Payment verification failed" });
       }
 
-      // Update payment status
       await PaymentModel.updatePaymentStatus(tran_id, "completed", val_id);
 
       console.log("IPN processed successfully for transaction:", tran_id);
@@ -475,6 +323,99 @@ const paymentController = {
     } catch (error) {
       console.error("Create payment error:", error);
       res.status(500).send({ error: error.message });
+    }
+  },
+
+  processTravelerPayout: async (req, res) => {
+    try {
+      const { orderId, status } = req.body;
+
+      if (status !== "completed" && status !== "delivered") {
+        return res.status(400).json({ error: "Invalid status for payout" });
+      }
+
+      const bid = await BidModel.getBidById(orderId);
+      if (!bid) {
+        return res.status(404).json({ error: "Bid not found" });
+      }
+
+      if (bid.payoutProcessed) {
+        return res.status(400).json({ error: "Payout already processed" });
+      }
+
+      const payment = await PaymentModel.getPaymentByOrderId(orderId);
+      if (!payment || payment.status !== "completed") {
+        return res
+          .status(400)
+          .json({ error: "Payment not found or not completed" });
+      }
+
+      const totalAmount = parseFloat(payment.amount);
+      const travelerEarnings = totalAmount * 0.9;
+
+      await UserModel.deductAdminBalance(travelerEarnings);
+      await UserModel.updateTravelerBalance(
+        bid.travelerEmail,
+        travelerEarnings
+      );
+      await BidModel.updateBidPayoutStatus(orderId, true);
+
+      await PaymentModel.updatePaymentPayout(payment.paymentIntentId, {
+        payoutProcessed: true,
+        payoutDate: new Date(),
+        travelerEarnings,
+        adminRetained: totalAmount * 0.1,
+      });
+
+      res.json({
+        success: true,
+        message: "Traveler payout processed successfully",
+        travelerEarnings,
+        adminRetained: totalAmount * 0.1,
+        orderId,
+      });
+    } catch (error) {
+      console.error("Traveler payout error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  handleBidStatusUpdate: async (orderId, newStatus) => {
+    try {
+      if (newStatus === "completed" || newStatus === "delivered") {
+        const bid = await BidModel.getBidById(orderId);
+
+        if (bid && !bid.payoutProcessed) {
+          const payment = await PaymentModel.getPaymentByOrderId(orderId);
+
+          if (payment && payment.status === "completed") {
+            const totalAmount = parseFloat(payment.amount);
+            const travelerEarnings = totalAmount * 0.9;
+
+            await UserModel.deductAdminBalance(travelerEarnings);
+            await UserModel.updateTravelerBalance(
+              bid.travelerEmail,
+              travelerEarnings
+            );
+            await BidModel.updateBidPayoutStatus(orderId, true);
+
+            await PaymentModel.updatePaymentPayout(payment.paymentIntentId, {
+              payoutProcessed: true,
+              payoutDate: new Date(),
+              travelerEarnings,
+              adminRetained: totalAmount * 0.1,
+            });
+
+            console.log(
+              `Auto-payout processed for order ${orderId}: Traveler received ${travelerEarnings}, Admin retained ${
+                totalAmount * 0.1
+              }`
+            );
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Auto-payout error:", error);
     }
   },
 };

@@ -9,7 +9,7 @@ import {
   Globe,
   Package,
   Plane,
-  Info
+  Info,
 } from "lucide-react";
 import useAuth from "../../hooks/useAuth";
 
@@ -25,18 +25,17 @@ const Navbar = () => {
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
   return (
-    <nav
-      className="px-4 py-3 flex items-center justify-between relative  bg-[#009ee2] text-white shadow-lg"
-     
-    >
+    <nav className="px-4 py-3 flex items-center justify-between relative  bg-[#009ee2] text-white shadow-lg">
       {/* Logo */}
-      <div className="flex items-center space-x-2">
-        <div className="relative">
-          <Globe className="h-6 w-6 text-white animate-spin-slow" />
-          <Plane className="h-3 w-3 text-white absolute -top-1 -right-1" />
+      <Link to="/">
+        <div className="flex items-center space-x-2">
+          <div className="relative">
+            <Globe className="h-6 w-6 text-white animate-spin-slow" />
+            <Plane className="h-3 w-3 text-white absolute -top-1 -right-1" />
+          </div>
+          <h1 className="text-xl font-bold text-white">TravelTrade</h1>
         </div>
-        <h1 className="text-xl font-bold text-white">TravelTrade</h1>
-      </div>
+      </Link>
 
       {/* Desktop Navigation */}
       <div className="hidden md:flex space-x-6">
@@ -77,12 +76,12 @@ const Navbar = () => {
         {user?.email ? (
           <div className="relative flex items-center ml-4">
             {/* Notification Icon */}
-            <button
+            {/* <button
               className="text-white hover:bg-[#009ee2] p-2 rounded mr-2"
               aria-label="Notifications"
             >
               <Bell className="h-5 w-5" />
-            </button>
+            </button> */}
 
             {/* Avatar and Dropdown */}
             <button
@@ -107,7 +106,9 @@ const Navbar = () => {
                 style={{ top: "100%" }}
               >
                 <div className="px-4 py-3 border-b border-gray-200">
-                  <p className="text-sm font-medium">{user.displayName || user.email}</p>
+                  <p className="text-sm font-medium">
+                    {user.displayName || user.email}
+                  </p>
                   <p className="text-xs text-gray-500 truncate">{user.email}</p>
                 </div>
 
@@ -244,7 +245,7 @@ const Navbar = () => {
             <p className="font-medium">{user.displayName || "User"}</p>
             <p className="text-sm text-gray-500 truncate">{user.email}</p>
           </div>
-          
+
           <Link
             to="/profile"
             className="flex items-center px-4 py-3 hover:bg-gray-50"
@@ -253,7 +254,7 @@ const Navbar = () => {
             <User className="text-gray-600 h-4 w-4 mr-3" />
             <span>Profile</span>
           </Link>
-          
+
           <Link
             to="/dashboard"
             className="flex items-center px-4 py-3 hover:bg-gray-50"
@@ -262,7 +263,7 @@ const Navbar = () => {
             <Package className="text-gray-600 h-4 w-4 mr-3" />
             <span>Dashboard</span>
           </Link>
-          
+
           <button
             onClick={() => {
               logOut();

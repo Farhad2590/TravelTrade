@@ -167,6 +167,10 @@ class UserModel {
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     );
   }
+  static async updateUserBalance(email, amount) {
+    const collection = await this.getCollection();
+    return collection.updateOne({ email }, { $inc: { balance: amount } });
+  }
 
   static async updateAdminBalance(amount) {
     const collection = await this.getCollection();
@@ -185,6 +189,21 @@ class UserModel {
       },
       { upsert: true }
     );
+  }
+
+  static async deductAdminBalance(amount) {
+    const collection = await this.getCollection();
+    const adminEmail = "traveltradesihab@gmail.com";
+
+    return collection.updateOne(
+      { email: adminEmail },
+      { $inc: { balance: -amount } }
+    );
+  }
+
+  static async updateTravelerBalance(email, amount) {
+    const collection = await this.getCollection();
+    return collection.updateOne({ email }, { $inc: { balance: amount } });
   }
 }
 

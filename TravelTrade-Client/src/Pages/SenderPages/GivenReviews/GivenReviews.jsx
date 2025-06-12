@@ -10,16 +10,14 @@ const GivenReviews = () => {
 
   useEffect(() => {
     fetchGivenReviews();
+    // eslint-disable-next-line
   }, []);
 
   const fetchGivenReviews = async () => {
     try {
       setLoading(true);
       const response = await fetch(`http://localhost:9000/users/reviews/given/${user?.email}`);
-    //   console.log(response);
-      
       const data = await response.json();
-
       if (response.ok) {
         setReviews(data.reviews || []);
       } else {
@@ -32,26 +30,22 @@ const GivenReviews = () => {
     }
   };
 
-  const renderStars = (rating) => {
-    return Array.from({ length: 5 }, (_, index) => (
-      <Star
-        key={index}
-        className={`w-4 h-4 ${
-          index < rating ? "text-yellow-400 fill-current" : "text-gray-300"
-        }`}
-      />
-    ));
-  };
+  const renderStars = (rating) => (
+    <div className="flex items-center">
+      {Array.from({ length: 5 }, (_, idx) => (
+        <Star key={idx} className={`w-4 h-4 ${idx < rating ? "text-yellow-400 fill-current" : "text-gray-300"}`} />
+      ))}
+    </div>
+  );
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+  const formatDate = (dateString) =>
+    new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
 
   if (loading) {
     return (
@@ -70,81 +64,66 @@ const GivenReviews = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">
-          Reviews You've Given
-        </h2>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-gradient-to-r from-[#009ee2] to-[#0085c3] rounded-xl shadow-xl px-8 py-6 mb-8 text-white">
+          <h2 className="text-3xl font-bold">Reviews You’ve Given</h2>
+          <p className="text-blue-100 mt-2">All your posted reviews, visible to travelers and senders</p>
+        </div>
 
-        {reviews.length === 0 ? (
-          <div className="text-center py-12">
-            <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">
-              You haven't given any reviews yet
-            </p>
-            <p className="text-gray-400 text-sm mt-2">
-              Reviews you give to travelers will appear here
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {reviews.map((review, index) => (
-              <div
-                key={index}
-                className="bg-gray-50 rounded-lg p-6 border border-gray-200"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          {reviews.length === 0 ? (
+            <div className="text-center py-12">
+              <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">You haven’t given any reviews yet</p>
+              <p className="text-gray-400 text-sm mt-2">Reviews you give to travelers will appear here</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {reviews.map((review, idx) => (
+                <div
+                  key={idx}
+                  className="bg-gradient-to-br from-blue-50 to-white rounded-xl border border-blue-100 shadow p-6"
+                >
+                  <div className="flex items-center gap-4 mb-3">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center overflow-hidden">
                       {review.reviewedUserPhoto ? (
                         <img
                           src={review.reviewedUserPhoto}
                           alt={review.reviewedUserName}
-                          className="w-10 h-10 rounded-full object-cover"
+                          className="w-12 h-12 rounded-full object-cover"
                         />
                       ) : (
                         <User className="w-5 h-5 text-blue-600" />
                       )}
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <h3 className="font-semibold text-gray-800">
-                        Review for {review.reviewedUserName}
+                        {review.reviewedUserName}
                       </h3>
-                      <p className="text-sm text-gray-500">
-                        {review.reviewedUserEmail}
-                      </p>
+                      <p className="text-xs text-gray-500">{review.reviewedUserEmail}</p>
+                    </div>
+                    <div className="flex items-center">
+                      {renderStars(review.rating)}
+                      <span className="ml-2 text-blue-600 font-bold text-lg">{review.rating}/5</span>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    {renderStars(review.rating)}
-                    <span className="text-sm text-gray-600 ml-2">
-                      {review.rating}/5
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <p className="text-gray-700 leading-relaxed">
-                    {review.comment}
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between text-sm text-gray-500">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-1">
+                  <p className="text-gray-700 mb-3">{review.comment}</p>
+                  <div className="flex items-center gap-8 text-sm text-gray-500">
+                    <div className="flex items-center gap-1">
                       <Package className="w-4 h-4" />
-                      <span>{review.parcel_type}</span>
+                      {review.parcel_type}
                     </div>
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      <span>{formatDate(review.createdAt)}</span>
+                      {formatDate(review.createdAt)}
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -55,16 +55,16 @@ const Dashboard = () => {
       path: "/dashboard/find-travelers",
       icon: <FaSearch />,
     },
-    {
-      name: "New Request",
-      path: "/dashboard/new-request",
-      icon: <FaBriefcase />,
-    },
-    {
-      name: "Active Shipments",
-      path: "/dashboard/active-shipments",
-      icon: <FaExchangeAlt />,
-    },
+    // {
+    //   name: "New Request",
+    //   path: "/dashboard/new-request",
+    //   icon: <FaBriefcase />,
+    // },
+    // {
+    //   name: "Active Shipments",
+    //   path: "/dashboard/active-shipments",
+    //   icon: <FaExchangeAlt />,
+    // },
     {
       name: "Payment History",
       path: "/dashboard/payments",
@@ -88,11 +88,11 @@ const Dashboard = () => {
       path: "/dashboard/available-requests",
       icon: <FaShoppingCart />,
     },
-    {
-      name: "Current Deliveries",
-      path: "/dashboard/current-deliveries",
-      icon: <FaBox />,
-    },
+    // {
+    //   name: "Current Deliveries",
+    //   path: "/dashboard/current-deliveries",
+    //   icon: <FaBox />,
+    // },
     {
       name: "Earnings",
       path: "/dashboard/earnings",

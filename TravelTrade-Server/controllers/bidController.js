@@ -1,4 +1,5 @@
 const BidModel = require("../models/bidModel");
+const UserModel = require("../models/userModel");
 
 const bidController = {
   createBid: async (req, res) => {
@@ -58,15 +59,39 @@ const bidController = {
       const bidId = req.params.bidId;
       const { status, checkImage } = req.body;
 
+      // First update the check status
       await BidModel.updateCheckStatus(bidId, status, checkImage);
 
-      // Also update the main status if needed
-      if (status === "parcel_Pickup") {
-        await BidModel.updateBidStatus(bidId, status);
+      // Get the updated bid
+      const bid = await BidModel.getBidById(bidId);
+
+      // If status is "received", process payout with 90/10 split
+      if (status === "received" && bid && bid.amount && !bid.payoutProcessed) {
+        const totalAmount = parseFloat(bid.amount);
+        const travelerEarnings = totalAmount * 0.9; // 90% to traveler
+        const platformFee = totalAmount * 0.1; // 10% stays with admin
+
+        // Deduct 90% from admin balance (traveler's share)
+        await UserModel.deductAdminBalance(travelerEarnings);
+
+        // Add 90% to traveler balance
+        await UserModel.updateTravelerBalance(
+          bid.travelerEmail,
+          travelerEarnings
+        );
+
+        // Update bid with earnings info and mark as processed
+        await BidModel.updateBidPayoutStatus(
+          bidId,
+          true,
+          travelerEarnings,
+          platformFee
+        );
       }
 
       res.status(200).json({ success: true });
     } catch (error) {
+      console.error("Error updating check status:", error);
       res.status(500).json({ error: "Failed to update check status" });
     }
   },
@@ -85,25 +110,76 @@ const bidController = {
       const bidId = req.params.bidId;
       let { status } = req.body;
 
-      // Get the bid first to check request_type
-      const bid = await BidModel.getBidById(bidId);
-      if (!bid) {
-        return res.status(404).json({ error: "Bid not found" });
-      }
+      // Get the bid first to check request_type and current status
+      // const bid = await BidModel.getBidById(bidId);
+      // if (!bid) {
+      //   return res.status(404).json({ error: "Bid not found" });
+      // }
 
-      // For send requests, override status if paymentDone was requested
-      if (bid.request_type === "send" && status === "paymentDone") {
-        status = "payment_done_check_needed";
-      }
+      // // For send requests, override status if paymentDone was requested
+      // if (bid.request_type === "send" && status === "paymentDone") {
+      //   status = "payment_done_check_needed";
+      // }
 
       const result = await BidModel.updateBidStatus(bidId, status);
+      console.log(result);
+      
 
       if (result.modifiedCount === 0) {
         return res.status(400).json({ error: "No changes made to bid" });
       }
 
-      // Return the updated bid
+      // Get the updated bid
       const updatedBid = await BidModel.getBidById(bidId);
+      console.log(updatedBid);
+      
+
+      // Handle balance updates when status is "received" - 90/10 split
+      if (
+        status === "received" &&
+        updatedBid.totalCost &&
+        !updatedBid.payoutProcessed
+      ) {
+        const totalAmount = parseFloat(updatedBid.totalCost);
+        const travelerEarnings = totalAmount * 0.9; // 90% to traveler
+        const platformFee = totalAmount * 0.1; // 10% stays with admin
+        console.log(totalAmount.travelerEarnings);
+        
+        console.log(`Processing payout for bid ${bidId}:`, {
+          totalAmount,
+          travelerEarnings,
+          platformFee,
+          travelerEmail: updatedBid.travelerEmail,
+        });
+
+        try {
+          // Deduct 90% from admin balance (traveler's share)
+          await UserModel.deductAdminBalance(travelerEarnings);
+
+          // Add 90% to traveler balance
+          await UserModel.updateTravelerBalance(
+            updatedBid.travelerEmail,
+            travelerEarnings
+          );
+
+          // Update bid with earnings info and mark as processed
+          await BidModel.updateBidPayoutStatus(
+            bidId,
+            true,
+            travelerEarnings,
+            platformFee
+          );
+
+          console.log(`Payout processed successfully for bid ${bidId}`);
+        } catch (balanceError) {
+          console.error("Error processing balance updates:", balanceError);
+          // Revert the status update if balance operations fail
+          await BidModel.updateBidStatus(bidId, bid.status);
+          throw balanceError;
+        }
+      }
+
+      // Return the updated bid
       res.status(200).json({ success: true, bid: updatedBid });
     } catch (error) {
       console.error("Error updating bid status:", error);

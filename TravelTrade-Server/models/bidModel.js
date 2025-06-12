@@ -20,6 +20,29 @@ class BidModel {
     });
   }
 
+  static async updateBidPayoutStatus(bidId, payoutProcessed, travelerEarnings = null, platformFee = null) {
+    const collection = await this.getCollection();
+    const updateData = {
+      payoutProcessed,
+      payoutDate: new Date(),
+    };
+
+    if (travelerEarnings !== null) {
+      updateData.travelerEarnings = travelerEarnings;
+    }
+
+    if (platformFee !== null) {
+      updateData.platformFee = platformFee;
+    }
+
+    return collection.updateOne(
+      { _id: getObjectId(bidId) },
+      {
+        $set: updateData,
+      }
+    );
+  }
+
   static async getBidsByPost(postId) {
     const collection = await this.getCollection();
     return collection.findOne({ postId });
@@ -53,11 +76,21 @@ class BidModel {
     const collection = await this.getCollection();
     return collection.findOne({ _id: getObjectId(bidId) });
   }
-  static async updateBidStatus(bidId, status) {
+
+  static async updateBidStatus(bidId, status, travelerEarnings = null) {
     const collection = await this.getCollection();
+    const updateData = { 
+      status,
+      updatedAt: new Date()
+    };
+
+    if (travelerEarnings !== null) {
+      updateData.travelerEarnings = travelerEarnings;
+    }
+
     const result = await collection.updateOne(
       { _id: getObjectId(bidId) },
-      { $set: { status } }
+      { $set: updateData }
     );
     return result;
   }
